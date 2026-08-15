@@ -1,20 +1,65 @@
-# MiniLab Playground — arquitectura inicial
+# MiniLab Playground — arquitectura
+
+Este documento explica las fronteras entre UI, entrada MIDI, audio, modo canción y persistencia. El resumen operativo está en `docs/PROJECT_CONTEXT.md`; los comandos y la validación están en `docs/DEVELOPMENT.md`.
 
 ## Dirección del producto
 
-La aplicación se trata como un instrumento digital y no como una estación de trabajo. La pantalla principal concentra el gesto importante: conectar, elegir una textura, tocar y ver una respuesta inmediata. La complejidad técnica vive detrás de una pequeña cantidad de controles con intención musical.
+MiniLab Playground se comporta como un instrumento digital pequeño, no como una estación de trabajo. El gesto principal es conectar, elegir un timbre, tocar y recibir una respuesta inmediata. La pantalla principal mantiene el teclado como elemento central y revela complejidad solo cuando una acción la necesita.
 
-## Decisiones técnicas
+Principios que deben mantenerse:
 
-### React + TypeScript + Vite
+- local-first y sin backend obligatorio;
+- audio y transporte independientes del ciclo de render de React;
+- MIDI convertido a eventos semánticos antes de llegar a la UI;
+- canciones importadas localmente y persistidas en el dispositivo;
+- controles secundarios compactos y accesibles;
+- soporte explícito de español/inglés y claro/oscuro.
 
-React organiza la superficie visual y las interacciones de producto; TypeScript mantiene explícitos los contratos entre los motores. Vite mantiene el arranque local rápido y no introduce backend ni una capa de despliegue innecesaria.
+## Flujo de alto nivel
 
-Las versiones están fijadas en una línea compatible con Node 18.18+, que es el runtime disponible en el entorno de desarrollo actual.
+```mermaid
+flowchart LR
+  User["Usuario / teclado virtual"] --> App["App.tsx"]
+  Midi["MiniLab 3 / Web MIDI"] --> MidiEngine["MidiEngine"]
+  MidiEngine --> App
+  App --> Audio["AudioEngine / Web Audio"]
+  App --> UI["React + styles.css"]
+  File["Archivo MIDI local"] --> Parser["songParser.ts"]
+  Parser --> Storage["songStorage.ts"]
+  Storage --> App
+  App --> Transport["SongTransport"]
+  Transport --> Audio
+  Transport --> Scoring["gameScoring.ts"]
+  Scoring --> App
+```
 
-### Web MIDI API
+## Capas y responsabilidades
 
-`MidiEngine` es el único lugar que conoce los bytes de MIDI. Expone eventos semánticos hacia la UI y el futuro loop engine:
+### `src/App.tsx`
+
+Es el coordinador de la aplicación. Mantiene estado de idioma, tema, instrumento seleccionado, dispositivo MIDI, teclado activo, BPM, grabación, biblioteca y sesión de canción. Conecta callbacks de `MidiEngine`, `AudioEngine`, `SongTransport` y `SongGame`.
+
+No debe convertirse en el lugar donde se implementan algoritmos de scheduling o parsing. Cuando una regla pueda probarse sin DOM, debe ir a `src/lib`.
+
+### `src/components/SongGame.tsx`
+
+Renderiza la superficie de juego: pista objetivo, vista falling/piano-roll, transporte, velocidad, puntuación y rango visible. Recibe datos y callbacks; no es dueño del reloj ni de la persistencia.
+
+### `src/types.ts`
+
+Es la fuente común de contratos:
+
+```ts
+ImportedSong -> tempos + tracks[] -> SongTrack -> SongNote[]
+MidiNoteInput -> scoring -> Judgment
+GameSession -> estado visual/persistible del modo canción
+```
+
+Cambiar estos contratos requiere revisar parser, storage, transporte, scoring, componente de juego y pruebas.
+
+### `src/lib/midiEngine.ts`
+
+Es la única capa que conoce la representación binaria de mensajes MIDI. Expone:
 
 ```ts
 onNoteOn(note, velocity, channel, receivedAt)
@@ -25,120 +70,142 @@ onLog(event)
 onDevices(inputs)
 ```
 
-El engine recuerda el último `input.id`, prefiere un dispositivo cuyo nombre contenga `MiniLab` o `Arturia` y observa cambios de conexión. Si hay más de un dispositivo, la pantalla permite seleccionarlo.
+El tiempo de recepción de una nota usa `performance.now()`. La selección de dispositivo recuerda `minilab-last-device`, prefiere MiniLab/Arturia y observa `onstatechange`.
 
-El mapping inicial está aislado en `MiniLabMapping`. Para el MiniLab 3 se usan los CC documentados por Arturia: encoders 1–8 en `74, 71, 76, 77, 93, 18, 19, 16`, faders en `82, 83, 85, 17` y pads 1–8 en `102–109`. El monitor sigue siendo la fuente de verdad al probar el puerto real del dispositivo, ya que Arturia expone también puertos separados para MCU/HUI y Analog Lab.
+### `src/lib/minilabMapping.ts`
 
-### Web Audio API
+Mantiene separado el mapping semántico del parser MIDI. El mapping inicial acepta:
 
-`AudioEngine` mantiene el contexto de audio y las voces fuera del estado de React. Cada nota crea una voz con oscilador, filtro low-pass y envolvente de ganancia. La UI solo envía comandos (`noteOn`, `noteOff`, parámetros); no funciona como reloj musical.
+- encoders: `74, 71, 76, 77, 93, 18, 19, 16`;
+- pads: CC `102–109`;
+- faders observados: `82, 83, 85, 17`.
 
-Esto permite evolucionar después hacia:
+Estos valores deben confirmarse con el monitor MIDI cuando se pruebe un preset o firmware diferente.
 
-- un scheduler basado en `AudioContext.currentTime`;
-- buses internos de reverb y delay;
-- instrumentos sample-based;
-- grabación del master mediante `MediaStreamAudioDestinationNode`.
+### `src/lib/audioEngine.ts`
 
-La implementación actual ya conecta el master a un `MediaStreamAudioDestinationNode`. `MediaRecorder` captura ese stream y ofrece una reproducción local y una descarga WebM. El formato se elige con la capacidad real del navegador; no se presenta como WAV si el navegador está grabando WebM.
+Es dueño de un único `AudioContext`, el bus master, la salida de grabación y las voces activas/programadas. Soporta:
 
-### Modo canción MIDI
+- voces polifónicas con oscilador, filtro y envolvente;
+- `noteOn`/`noteOff` para el modo libre;
+- `scheduleNote`/`stopScheduled` para acompañamiento;
+- `triggerClick` para metrónomo;
+- `MediaStreamAudioDestinationNode` para `MediaRecorder`.
 
-El modo canción es local-first y acepta archivos `.mid`/`.midi` mediante selector o arrastrar y soltar. `songParser.ts` usa `@tonejs/midi` para convertir el archivo en un `ImportedSong` plano con tempos, pistas y notas; `songStorage.ts` guarda ese modelo en IndexedDB para que la biblioteca sobreviva al reinicio sin subir el archivo.
+El contexto se inicializa/resume después de una interacción del usuario para respetar autoplay policy. Un motor de loops futuro debe compartir este contexto, no crear uno por componente.
 
-`SongTransport` comparte el `AudioContext` del `AudioEngine`. El reloj lógico se ancla a `AudioContext.currentTime`, mientras un intervalo de look-ahead programa el acompañamiento con antelación. React recibe snapshots visuales, pero no funciona como reloj musical. La pista objetivo se silencia y las demás se asignan a los diez instrumentos existentes.
+### `src/lib/songParser.ts`
 
-`gameScoring.ts` conserva la nota original y crea una vista jugable de 25 teclas transportando por octavas las notas que quedan fuera del rango. La puntuación combina sincronización y velocidad MIDI; el teclado virtual conserva la evaluación de nota y tiempo sin penalizar una velocidad que no puede medir.
+Usa `@tonejs/midi` para convertir un `File` MIDI en `ImportedSong` plano. Normaliza:
 
-El tempo tiene ahora un uso audible independiente del loop engine: `AudioEngine.triggerClick()` genera el pulso del metrónomo y la UI lo inicia o pausa con un intervalo basado en BPM. Ese intervalo es una herramienta de previsualización, no el reloj definitivo de loops; el scheduler musical deberá usar look-ahead de Web Audio cuando llegue el Milestone 4.
+- nombre y metadata de archivo;
+- tempos y firma de tiempo;
+- pistas con notas;
+- nota MIDI, velocidad 1–127, inicio, duración y canal;
+- programa/instrumento y percusión.
 
-La superficie actual ofrece diez formas de onda/timbres agradables y una arquitectura deliberadamente pequeña. No intenta reemplazar un sampler ni un sintetizador completo.
+Las pistas sin notas se descartan. `pickTargetTrack` puntúa registro, cantidad de notas, variedad de alturas y notas cortas; excluye percusión salvo que no exista otra pista válida.
 
-### Modelo de datos
+### `src/lib/songStorage.ts`
 
-El contrato que debe conservarse para cualquier loop es:
+Usa IndexedDB con base `minilab-playground` y store `songs`. El key path es `song.id`. Guarda `ImportedSong` y preferencias de pista/vista/velocidad. Si IndexedDB falla, usa `minilab-song-library` en `localStorage`.
 
-```ts
-type NoteEvent = {
-  note: number
-  velocity: number
-  startTime: number
-  duration: number
-  channel: number
-}
+Una migración futura debe preservar canciones existentes y documentar el cambio de versión de object store.
+
+### `src/lib/songTransport.ts`
+
+Es el reloj lógico del modo canción y reutiliza `AudioEngine`.
+
+- `load` fija canción y pista objetivo.
+- `play` ancla posición a `AudioContext.currentTime`.
+- `pause` reancla, detiene notas programadas y conserva posición.
+- `stop` vuelve a cero.
+- `restart` detiene y reproduce desde el inicio.
+- `setSpeed` limita velocidad a `0.5–1.5` y reancla si está reproduciendo.
+- un timer de 25 ms actualiza snapshots y programa notas con look-ahead.
+- solo programa pistas distintas de la pista objetivo.
+
+El intervalo despierta al scheduler, pero el tiempo musical se calcula con `AudioContext.currentTime`. No usar la hora de React como fuente de verdad.
+
+### `src/lib/gameScoring.ts`
+
+Calcula un rango inicial central y pliega notas por octavas para el teclado de 25 teclas. Conserva la nota original en `SongNote` y agrega `playableNote` solo a la vista jugable.
+
+`judgeInput` busca la nota de la misma altura jugable dentro de `±0.15 s`, evita IDs ya juzgados y combina:
+
+- 70% sincronización;
+- 30% velocidad MIDI;
+- velocidad neutral para `source: 'virtual'`.
+
+Las etiquetas son `Perfecto`, `Bien`, `Acierto` y `Fallo`.
+
+## Audio, datos y UI
+
+```text
+MIDI bytes / keyboard event
+        ↓
+MidiNoteInput { note, velocity, channel, receivedAt, source }
+        ↓
+AudioEngine.noteOn() + gameScoring.judgeInput()
+        ↓
+activeNotes / score / combo / accuracy
+        ↓
+React UI + keyboard + SongGame
 ```
 
-Cuando llegue el loop engine, los tiempos se guardarán en beats relativos al inicio del loop, no como timestamps de React. Una sesión futura puede representarse así:
+Para una canción:
 
-```ts
-type Session = {
-  id: string
-  name: string
-  bpm: number
-  createdAt: number
-  layers: Layer[]
-}
-
-type Layer = {
-  id: string
-  instrumentId: string
-  muted: boolean
-  lengthInBeats: number
-  notes: NoteEvent[]
-}
+```text
+File.mid
+  ↓ parseMidiFile
+ImportedSong
+  ↓ songStorage.save/list
+SongTransport.load/play
+  ├─ acompaña pistas restantes → AudioEngine.scheduleNote
+  ├─ actualiza posición → SongGame
+  └─ recibe entrada del usuario → gameScoring
 ```
 
-Las sesiones pequeñas pueden vivir en `localStorage`. Los packs de samples, renders WAV y audio grabado deben ir a IndexedDB porque no conviene serializarlos en la configuración.
+## Persistencia
 
-## Cómo se implementará el looping
-
-El loop engine será independiente de React y tendrá un `Transport` propio:
-
-1. El primer click de Loop arma la captura y fija el tiempo de inicio del transporte.
-2. El modo Auto espera una duración musical razonable; 1, 2, 4 y 8 compases son límites explícitos.
-3. Los eventos entrantes se convierten de `AudioContext.currentTime` a beats.
-4. Una pequeña cuantización se aplica al inicio y al final, con una opción Auto conservadora para no borrar la intención humana.
-5. Al cerrar el compás, se congela la capa y el scheduler la reproduce repetidamente con look-ahead.
-6. La siguiente capa se graba contra el mismo transporte, nunca contra un contador de renders.
-
-El primer diseño de UX seguirá siendo una tarjeta por capa con mute, borrar y undo. No se agregará piano roll en esta etapa.
-
-## Sesión y exportación
-
-La grabación de sesión se hará conectando el master de audio a un `MediaStreamAudioDestinationNode` y grabando con `MediaRecorder`. El formato preferido será WAV si se incorpora un encoder pequeño y fiable; si el navegador solo ofrece un contenedor comprimido de forma consistente, se mostrará el formato real antes de descargar.
-
-La exportación offline de loops MIDI puede usar un `OfflineAudioContext` en una etapa posterior para renderizar sin depender del tiempo de la pantalla.
-
-## Riesgos técnicos
-
-| Riesgo | Impacto | Respuesta |
+| Dato | Almacenamiento | Clave/base |
 | --- | --- | --- |
-| Web MIDI no está disponible en todos los navegadores | El controlador no se puede detectar | Mostrar estado claro y recomendar Chrome/Edge; el teclado virtual sigue funcionando |
-| Los mappings del MiniLab pueden variar por preset/firmware | Knobs o pads pueden llegar con otro CC/nota | Mantener un monitor visible y una capa de mapping configurable |
-| Autoplay policy bloquea AudioContext | El primer toque no suena | Arrancar audio en la primera interacción y exponer el estado `audio ready` |
-| Scheduling en timers de UI produce jitter | Loops irregulares | Mantener el reloj en Web Audio y usar look-ahead, nunca `setInterval` como reloj musical |
-| Reverb/delay mal aislados generan feedback o latencia | Sonido incómodo o inestable | Buses internos con límites y valores seguros antes de exponer controles |
-| Los samples grandes no caben bien en localStorage | Sesiones/importaciones frágiles | IndexedDB para audio, localStorage solo para preferencias y metadatos |
-| Exportar MP3 en navegador agrega codecs y costes | Resultado inconsistente | Priorizar WAV/PCM y postergar MP3 hasta validar compatibilidad |
+| idioma | `localStorage` | `minilab-language` |
+| tema | `localStorage` | `minilab-theme` |
+| BPM | `localStorage` | `minilab-bpm` |
+| último dispositivo | `localStorage` | `minilab-last-device` |
+| canciones | IndexedDB | `minilab-playground` / `songs` |
+| fallback canciones | `localStorage` | `minilab-song-library` |
 
-## Próximos milestones
+`index.html` aplica el tema antes de montar React. `App.tsx` actualiza `document.documentElement.dataset.theme` y el `meta[name="theme-color"]` al cambiarlo. Las reglas del modo claro están al final de `styles.css` para ganar especificidad sobre la base oscura.
 
-### Milestone 2 — instrumento que responde
+## Entrada del launcher
 
-Pulir el AudioEngine con velocity, polyphony, envolventes consistentes y selección inmediata de timbres.
+`iniciar_minilab.vbs` ejecuta el BAT con ventana oculta. `iniciar_minilab.bat`:
 
-### Milestone 3 — hardware como interfaz
+1. ancla el directorio a `%~dp0`;
+2. hace `git fetch` y solo hace `git pull --ff-only` si `HEAD` está atrasado respecto de `origin/main` y no adelantado;
+3. ejecuta `npm ci` si faltan dependencias o cambian los manifests;
+4. inicia Vite en `127.0.0.1:5173` si no hay listener;
+5. espera HTTP 200 en `/`;
+6. abre el navegador y registra el resultado en `logs/`.
 
-Confirmar mapping real del MiniLab 3 con mensajes del monitor, conectar knobs a parámetros, y hacer que los pads tengan un modo diagnóstico y uno de drums.
+El launcher no debe usar comandos destructivos ni sobreescribir cambios locales.
 
-### Milestone 4 — loop musical
+## Límites y decisiones futuras
 
-Construir Transport, captura MIDI, cuantización conservadora, reproducción sincronizada y BPM/tap tempo. El metrónomo audible actual es una previsualización y no debe convertirse en el reloj de las capas.
+### Loop engine
 
-### Milestone 5 — capas
+Todavía no hay captura de capas MIDI editable. El siguiente diseño debe mantener un transporte independiente de React, convertir `AudioContext.currentTime` a beats, cuantizar de forma conservadora y persistir capas en IndexedDB.
 
-Capas como tarjetas, mute, delete, undo e instrumentos independientes, sin mixer profesional.
+### Audio y formatos
 
-### Milestone 6+ — grabación, persistencia e inspiración
+La grabación actual captura el master en el formato disponible por `MediaRecorder`, normalmente WebM. WAV/PCM fiable, samples y exportación offline quedan para otra etapa.
 
-La grabación WebM del master ya existe; este milestone debe sumar WAV fiable, sesiones locales, Inspire Me, escalas y presets. Play Mode y análisis de audio quedan fuera hasta que Free Play sea estable.
+### YouTube Music
+
+No existe integración en el código actual. Una futura búsqueda/reproducción debe usar APIs y reproductor oficial visible, con credenciales y privacidad documentadas. No se debe descargar, cachear, separar ni usar un reproductor oculto para convertir audio de YouTube en notas.
+
+### Hardware
+
+El mapping es una primera hipótesis y debe validarse con mensajes reales del MiniLab 3. No publicar un mapping como definitivo solo porque compile o porque funcione con un preset.

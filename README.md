@@ -24,6 +24,8 @@ La siguiente iteración agrega:
 - representación visual de 25 teclas, 8 pads, 8 encoders y 4 faders del MiniLab 3;
 - mapping de pads del MiniLab 3 como CC 102–109 y selección preferente del puerto `MiniLab 3 MIDI`.
 
+La pantalla principal mantiene una superficie minimalista: el teclado es el centro, los instrumentos se recorren en una banda horizontal y el banco de pads se abre desde un menú compacto. Los encoders, faders y parámetros de mezcla no se muestran hasta que exista una interacción musical que los necesite.
+
 El botón de Loop y las capas siguen reservados para el siguiente milestone. La grabación de sesión ya funciona sobre el audio que escucha el usuario, pero todavía no convierte las notas en loops MIDI editables.
 
 El botón `Iniciar` del tempo reproduce un pulso de metrónomo audible a la velocidad indicada; `Pausar` lo detiene. No inicia loops porque el motor de loops aún no está implementado.

@@ -12,7 +12,7 @@ MiniLab Playground es un instrumento musical local-first para Arturia MiniLab 3.
 - Mantener los contratos compartidos en `src/types.ts` y la lógica de audio, MIDI, canciones y persistencia fuera de los componentes React.
 - Actualizar las copias en español e inglés cuando se agregue texto visible.
 - Todo nuevo control visual debe contemplar `data-theme="dark"` y `data-theme="light"`; el tema elegido se guarda en `minilab-theme`.
-- El modo canción acepta MIDI local. No descargar, extraer, separar ni reproducir audio de YouTube fuera de un reproductor oficial visible.
+- El modo canción acepta MIDI local y puede vincularlo con un video de YouTube Music. El video siempre usa un reproductor oficial visible; no descargar, extraer ni separar su audio.
 - El launcher debe seguir usando rutas basadas en `%~dp0`, consola invisible mediante `.vbs`, comprobación HTTP del servidor y actualizaciones fast-forward únicamente.
 - No cambiar el puerto `5173`, la base IndexedDB `minilab-playground` ni las claves de preferencias sin documentar una migración.
 - Preferir cambios pequeños, reversibles y cubiertos por pruebas unitarias cuando se modifique parser, rango, puntuación o transporte.
@@ -37,6 +37,6 @@ Antes de trabajar, comprobar `git status --short --branch` y el remoto. No usar 
 1. `npm test` pasa.
 2. `npm run build` pasa.
 3. La interfaz principal se revisa en oscuro y claro.
-4. Si el cambio afecta canciones, se revisan biblioteca, importación, transporte y ambas vistas.
+4. Si el cambio afecta canciones, se revisan biblioteca, importación, transporte y ambas vistas; para YouTube también enlace, reproductor visible, offset y persistencia.
 5. Si el cambio afecta MIDI, se revisa el estado sin Web MIDI y el monitor con un dispositivo real cuando esté disponible.
 6. Se actualiza la documentación cuando cambia una decisión, una ruta, una persistencia o una limitación.

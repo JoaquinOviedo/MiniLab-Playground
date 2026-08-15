@@ -74,9 +74,13 @@ El BAT está fijado a la rama `main`. Si se prueba otra rama de desarrollo, actu
 - Importar un MIDI con varias pistas.
 - Confirmar biblioteca después de recargar.
 - Cambiar pista objetivo y comprobar acompañamiento.
-- Probar notas descendentes y piano-roll.
+- Probar Guitar Hero con notas descendentes y Rocksmith con piano-roll; ambos deben corresponder a las 25 teclas, sin elementos de guitarra.
 - Probar reproducir, pausar, reiniciar y velocidad 50–150%.
 - Comprobar puntuación con teclado virtual y, si está disponible, MiniLab.
+- Pegar un enlace de YouTube Music, vincular un MIDI y confirmar que abre en Rocksmith y puede alternar a Guitar Hero sin reiniciar.
+- Comprobar reproductor visible, play/pausa/reinicio, velocidad y offset de 0,1 s.
+- Recargar y confirmar que el enlace, offset y preferencias permanecen en la biblioteca.
+- Recordar que la grabación del master no incluye el audio del IFrame de YouTube.
 
 ## Diagnóstico rápido
 
@@ -108,4 +112,4 @@ Preservar la separación: tipos → parser/storage → transporte/scoring → co
 
 ### Agregar una integración externa
 
-Documentar primero credenciales, privacidad, almacenamiento y límites del proveedor. Para YouTube solo se permite la ruta oficial de búsqueda/reproductor visible; no implementar descarga, extracción de audio, reproductor oculto ni generación de charts desde contenido protegido.
+Documentar primero credenciales, privacidad, almacenamiento y límites del proveedor. La integración actual de YouTube usa enlace + reproductor oficial visible + MIDI local. No implementar descarga, extracción de audio, reproductor oculto ni generación de charts desde contenido protegido. Si se agrega búsqueda interna, mantenerla aislada de `youtube.ts` y documentar API key, cuota y errores.

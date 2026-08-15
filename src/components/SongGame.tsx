@@ -56,10 +56,10 @@ export function SongGame({
 }: SongGameProps) {
   const notes = playableNotes(targetTrack, keyboardStart).filter((note) => note.startTime >= position - 0.2 && note.startTime <= position + leadTime)
   const copy = language === 'es' ? {
-    songMode: 'MODO CANCIÓN',
+    songMode: 'GUITAR HERO / ROCKSMITH · MINILAB 3',
     track: 'Pista objetivo',
-    falling: 'Notas',
-    roll: 'Carril',
+    falling: 'Guitar Hero',
+    roll: 'Rocksmith',
     play: 'Reproducir',
     pause: 'Pausar',
     restart: 'Reiniciar',
@@ -70,12 +70,13 @@ export function SongGame({
     accuracy: 'Precisión',
     target: 'Línea de acierto',
     range: 'Rango',
-    accompaniment: 'acompañamiento activo',
+    notes: 'notas',
+    accompaniment: song.youtube ? 'YouTube sincronizado' : 'acompañamiento activo',
   } : {
-    songMode: 'SONG MODE',
+    songMode: 'GUITAR HERO / ROCKSMITH · MINILAB 3',
     track: 'Target track',
-    falling: 'Notes',
-    roll: 'Roll',
+    falling: 'Guitar Hero',
+    roll: 'Rocksmith',
     play: 'Play',
     pause: 'Pause',
     restart: 'Restart',
@@ -86,13 +87,14 @@ export function SongGame({
     accuracy: 'Accuracy',
     target: 'Hit line',
     range: 'Range',
-    accompaniment: 'accompaniment active',
+    notes: 'notes',
+    accompaniment: song.youtube ? 'YouTube synchronized' : 'accompaniment active',
   }
   const rangeLabel = `${String(foldNoteToKeyboard(keyboardStart, keyboardStart))}–${String(keyboardStart + 24)}`
 
-  return <section className="song-game panel" data-testid="song-game">
+  return <section className={`song-game panel ${song.youtube ? 'rocksmith-game' : ''}`} data-testid="song-game">
     <div className="song-game-header">
-      <div className="song-game-title"><span className="section-kicker"><span className="live-dot" /> {copy.songMode}</span><h2>{song.name}</h2><small>{targetTrack.notes.length} notas · {copy.accompaniment}</small></div>
+      <div className="song-game-title"><span className="section-kicker"><span className="live-dot" /> {copy.songMode}</span><h2>{song.name}</h2><small>{targetTrack.notes.length} {copy.notes} · {copy.accompaniment}</small></div>
       <button className="icon-button" aria-label={copy.close} title={copy.close} onClick={onClose}><X size={17} /></button>
     </div>
     <div className="song-game-controls">
@@ -100,7 +102,7 @@ export function SongGame({
       <div className="song-view-toggle" role="group" aria-label="Game view"><button className={view === 'falling' ? 'selected' : ''} onClick={() => onViewChange('falling')}><Layers3 size={14} /> {copy.falling}</button><button className={view === 'piano-roll' ? 'selected' : ''} onClick={() => onViewChange('piano-roll')}><Piano size={14} /> {copy.roll}</button></div>
       <div className="song-transport-actions"><button className="song-round-button" aria-label={state === 'playing' ? copy.pause : copy.play} title={state === 'playing' ? copy.pause : copy.play} onClick={onPlayPause}>{state === 'playing' ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}</button><button className="song-round-button" aria-label={copy.restart} title={copy.restart} onClick={onRestart}><RotateCcw size={14} /></button></div>
     </div>
-    <div className="song-game-meta"><span><Gauge size={13} /> {copy.speed} {Math.round(speed * 100)}%</span><input aria-label={copy.speed} type="range" min="50" max="150" step="5" value={Math.round(speed * 100)} onChange={(event) => onSpeedChange(Number(event.target.value) / 100)} /><span>{formatTime(position)} / {formatTime(song.duration)}</span><span className="song-range">{copy.range} {rangeLabel}</span></div>
+    <div className="song-game-meta"><span><Gauge size={13} /> {copy.speed} {Math.round(speed * 100)}%</span><input aria-label={copy.speed} type="range" min="50" max="150" step={song.youtube ? 25 : 5} value={Math.round(speed * 100)} onChange={(event) => onSpeedChange(Number(event.target.value) / 100)} /><span>{formatTime(position)} / {formatTime(song.duration)}</span><span className="song-range">{copy.range} {rangeLabel}</span></div>
     <div className={`song-board ${view}`}>
       {view === 'falling' ? <div className="falling-board">
         <div className="falling-lanes">{Array.from({ length: 25 }, (_, index) => <span key={index} />)}</div>

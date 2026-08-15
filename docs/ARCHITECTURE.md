@@ -29,6 +29,9 @@ flowchart LR
   Storage --> App
   App --> Transport["SongTransport"]
   Transport --> Audio
+  Link["Enlace YouTube Music"] --> YouTube["YouTubePlayer"]
+  YouTube --> App
+  YouTube --> Official["IFrame oficial visible"]
   Transport --> Scoring["gameScoring.ts"]
   Scoring --> App
 ```
@@ -43,7 +46,13 @@ No debe convertirse en el lugar donde se implementan algoritmos de scheduling o 
 
 ### `src/components/SongGame.tsx`
 
-Renderiza la superficie de juego: pista objetivo, vista falling/piano-roll, transporte, velocidad, puntuación y rango visible. Recibe datos y callbacks; no es dueño del reloj ni de la persistencia.
+Renderiza la superficie de juego: Guitar Hero (`falling`) y Rocksmith (`piano-roll`), pista objetivo, transporte, velocidad, puntuación y rango visible de 25 teclas. Recibe datos y callbacks; no es dueño del reloj ni de la persistencia.
+
+### `src/components/YouTubePlayer.tsx`
+
+Monta la API IFrame oficial en un panel visible y expone `play`, `pause`, `restart` y `setSpeed` mediante una ref. Consulta el tiempo del video cada 50 ms, resta el offset persistido y entrega la posición del chart a `App.tsx`. También permite calibrar el inicio del MIDI en pasos de 0,1 segundos.
+
+Cuando esta fuente está activa, `SongTransport` permanece detenido: YouTube reproduce el audio y el MIDI vinculado solo define notas, duración, pista objetivo y puntuación. La salida de YouTube no se conecta a Web Audio ni a la grabación del master.
 
 ### `src/types.ts`
 
@@ -112,6 +121,10 @@ Usa IndexedDB con base `minilab-playground` y store `songs`. El key path es `son
 
 Una migración futura debe preservar canciones existentes y documentar el cambio de versión de object store.
 
+### `src/lib/youtube.ts`
+
+Acepta enlaces `music.youtube.com`, `youtube.com`, `youtu.be`, URLs embed/shorts/live e IDs de 11 caracteres. Normaliza a `YouTubeSongSource { videoId, url, offset }` y crea una identidad distinta para el chart vinculado, evitando que sobrescriba la importación MIDI normal.
+
 ### `src/lib/songTransport.ts`
 
 Es el reloj lógico del modo canción y reutiliza `AudioEngine`.
@@ -166,6 +179,19 @@ SongTransport.load/play
   └─ recibe entrada del usuario → gameScoring
 ```
 
+Para Guitar Hero/Rocksmith MiniLab:
+
+```text
+URL de YouTube Music + File.mid
+  ↓ createYouTubeSongSource + linkMidiToYouTube
+ImportedSong { source: 'youtube-midi', youtube }
+  ↓ songStorage
+YouTubePlayer.getCurrentTime - youtube.offset
+  ├─ posición → SongGame / Guitar Hero o Rocksmith
+  ├─ play/pause/restart → reproductor oficial
+  └─ entrada MiniLab → gameScoring
+```
+
 ## Persistencia
 
 | Dato | Almacenamiento | Clave/base |
@@ -204,7 +230,7 @@ La grabación actual captura el master en el formato disponible por `MediaRecord
 
 ### YouTube Music
 
-No existe integración en el código actual. Una futura búsqueda/reproducción debe usar APIs y reproductor oficial visible, con credenciales y privacidad documentadas. No se debe descargar, cachear, separar ni usar un reproductor oculto para convertir audio de YouTube en notas.
+La integración actual funciona por enlace y MIDI asociado, sin API key ni búsqueda interna. El IFrame oficial permanece visible y es la fuente de tiempo. No se descarga, cachea, separa ni analiza audio de YouTube. Videos no embebibles muestran un error del reproductor y requieren elegir otra versión. Una búsqueda interna futura deberá usar la API oficial y documentar credenciales, cuota y privacidad.
 
 ### Hardware
 

@@ -11,6 +11,7 @@ import {
   KeyboardMusic,
   Languages,
   Lightbulb,
+  Link2,
   Menu,
   Moon,
   Music2,
@@ -26,6 +27,7 @@ import {
   Upload,
   Waves,
   X,
+  Youtube,
 } from 'lucide-react'
 import { AudioEngine } from './lib/audioEngine'
 import { chooseKeyboardStart, accuracyFor, judgeInput, playableNotes } from './lib/gameScoring'
@@ -34,8 +36,10 @@ import { readStoredBpm, storeBpm } from './lib/storage'
 import { parseMidiFile, pickTargetTrack } from './lib/songParser'
 import { songStorage, type StoredSong } from './lib/songStorage'
 import { SongTransport } from './lib/songTransport'
+import { createYouTubeSongSource, linkMidiToYouTube } from './lib/youtube'
 import { SongGame } from './components/SongGame'
-import type { GameTransportState, GameView, ImportedSong, InstrumentDefinition, MidiLogEvent, MidiNoteInput, SongTrack } from './types'
+import { YouTubePlayer, type YouTubePlayerHandle } from './components/YouTubePlayer'
+import type { GameTransportState, GameView, ImportedSong, InstrumentDefinition, MidiLogEvent, MidiNoteInput, SongTrack, YouTubeSongSource } from './types'
 
 type Language = 'es' | 'en'
 type Theme = 'dark' | 'light'
@@ -61,12 +65,14 @@ const defaultKnobs = { tone: 58, reverb: 35, delay: 12, attack: 24 }
 const copy = {
   es: {
     eyebrow: 'Un lugar para', freePlay: 'MODO LIBRE', heroTitle: 'Haz algo', heroEmphasis: 'pequeño.', heroCopy: 'Conecta tu MiniLab, elige un sonido y empieza a tocar.', tempo: 'TEMPO', bpm: 'BPM', slower: 'Más lento', faster: 'Más rápido', chooseSound: 'ELIGE UN SONIDO', soundSettings: 'ajustes', inspire: 'Inspírame', songs: 'CANCIONES', songLibrary: 'Biblioteca de canciones', loadSong: 'Cargar canción', dropSong: 'Arrastra un MIDI aquí o selecciónalo', midiOnly: 'Solo archivos .mid y .midi', noSongs: 'Todavía no hay canciones cargadas.', openSong: 'Jugar', deleteSong: 'Eliminar', loadingSong: 'Analizando MIDI…', songLoaded: 'Canción lista para jugar', songError: 'No se pudo leer ese MIDI.', songEmpty: 'El MIDI no contiene pistas con notas.', targetTrack: 'Pista objetivo', gameReady: 'Elige una canción para comenzar',
+    youtubeMusic: 'YOUTUBE MUSIC + GUITAR HERO / ROCKSMITH', youtubeUrl: 'Enlace de la canción', youtubePlaceholder: 'https://music.youtube.com/watch?v=…', youtubeSearch: 'Abrir YouTube Music', youtubeLinkMidi: 'Vincular MIDI y jugar', youtubeHint: 'YouTube reproduce el audio; el MIDI define las notas para las 25 teclas del MiniLab 3.', youtubeOffset: 'Inicio del MIDI', youtubeInvalid: 'Pega un enlace válido de YouTube Music o YouTube.', youtubeLinked: 'YouTube y MIDI vinculados', midiAlternative: 'O importa solamente un MIDI',
     minilab: 'MINILAB / VISUALIZADOR', keys: '25 TECLAS', tip: 'Pulsa una tecla del MiniLab o usa A–P para tocar', computer: 'el teclado A–P también funciona', pads: 'PADS', padBank: 'BANCO', controller: 'CONTROLADOR', noController: 'Sin controlador todavía', unsupported: 'Web MIDI no disponible', waiting: 'Esperando un controlador MIDI', looking: 'Buscando un controlador', tryChrome: 'Prueba Chrome o Edge para MIDI', plugIn: 'Conecta tu MiniLab para empezar', connectMidi: 'Conectar MIDI', rescan: 'Volver a buscar MIDI', selectController: 'Seleccionar controlador',
     metronome: 'Metrónomo', active: 'activo', start: 'Iniciar', pause: 'Pausar', loop: 'LOOP', loopSub: 'una pulsación para empezar', record: 'GRABAR SESIÓN', stopRecord: 'DETENER GRABACIÓN', recording: 'Grabando sesión', recordingReady: 'Grabación lista', download: 'Descargar', loopsNext: 'Loops y capas son el siguiente paso', openMonitor: 'abrir monitor MIDI',
     audioReady: 'audio listo', audioWaiting: 'esperando la primera nota', footer: 'local-first · sin cuenta · hecho para perderse en el sonido', devTool: 'HERRAMIENTA DE DESARROLLO', midiMonitor: 'Monitor MIDI', liveMessages: 'mensajes en vivo de', events: 'eventos', emptyEvents: 'Pulsa una tecla o mueve un control para verlo aquí.', listener: 'escucha activa', clear: 'limpiar', settings: 'AJUSTES', keepSimple: 'Mantengámoslo simple.', scale: 'Asistente de escala', scaleSub: 'Stay in key llegará con el motor de loops.', output: 'Salida de audio', outputSub: 'Predeterminada del navegador · baja latencia recomendada.', packs: 'Packs de instrumentos', packsSub: 'Los sonidos sampleados llegarán después del loop principal.', openMidi: 'Abrir monitor MIDI', language: 'Cambiar idioma', theme: 'Cambiar tema', lightMode: 'Modo claro', darkMode: 'Modo oscuro',
   },
   en: {
     eyebrow: 'A tiny place to', freePlay: 'FREE PLAY', heroTitle: 'Make a little', heroEmphasis: 'something.', heroCopy: 'Connect your MiniLab, choose a sound, and start playing.', tempo: 'TEMPO', bpm: 'BPM', slower: 'Slower', faster: 'Faster', chooseSound: 'CHOOSE A SOUND', soundSettings: 'settings', inspire: 'Inspire me', songs: 'SONGS', songLibrary: 'Song library', loadSong: 'Load song', dropSong: 'Drop a MIDI here or choose one', midiOnly: 'Only .mid and .midi files', noSongs: 'No songs loaded yet.', openSong: 'Play', deleteSong: 'Delete', loadingSong: 'Reading MIDI…', songLoaded: 'Song ready to play', songError: 'That MIDI could not be read.', songEmpty: 'The MIDI has no tracks with notes.', targetTrack: 'Target track', gameReady: 'Choose a song to begin',
+    youtubeMusic: 'YOUTUBE MUSIC + GUITAR HERO / ROCKSMITH', youtubeUrl: 'Song link', youtubePlaceholder: 'https://music.youtube.com/watch?v=…', youtubeSearch: 'Open YouTube Music', youtubeLinkMidi: 'Link MIDI and play', youtubeHint: 'YouTube plays the audio; MIDI defines the notes for all 25 MiniLab 3 keys.', youtubeOffset: 'MIDI start', youtubeInvalid: 'Paste a valid YouTube Music or YouTube link.', youtubeLinked: 'YouTube and MIDI linked', midiAlternative: 'Or import a MIDI only',
     minilab: 'MINILAB / VISUALIZER', keys: '25 KEYS', tip: 'Press any key on your MiniLab, or use A–P to play', computer: 'computer keys A–P work too', pads: 'PADS', padBank: 'BANK', controller: 'CONTROLLER', noController: 'No controller yet', unsupported: 'Web MIDI unavailable', waiting: 'Waiting for a MIDI controller', looking: 'Looking for a controller', tryChrome: 'Try Chrome or Edge for MIDI access', plugIn: 'Plug in your MiniLab to start playing', connectMidi: 'Connect MIDI', rescan: 'Rescan MIDI', selectController: 'Select controller',
     metronome: 'Metronome', active: 'active', start: 'Start', pause: 'Pause', loop: 'LOOP', loopSub: 'one press to begin', record: 'RECORD SESSION', stopRecord: 'STOP RECORDING', recording: 'Recording session', recordingReady: 'Recording ready', download: 'Download', loopsNext: 'Loops & layers are next', openMonitor: 'open MIDI monitor',
     audioReady: 'audio ready', audioWaiting: 'waiting for first note', footer: 'local-first · no account · made for getting lost in sound', devTool: 'DEVELOPMENT TOOL', midiMonitor: 'MIDI monitor', liveMessages: 'live messages from', events: 'events', emptyEvents: 'Play a key or move a control to see it here.', listener: 'listener active', clear: 'clear', settings: 'SETTINGS', keepSimple: 'Keep it simple.', scale: 'Scale assist', scaleSub: 'Stay in key will arrive with the loop engine.', output: 'Audio output', outputSub: 'Browser default · low latency preferred.', packs: 'Instrument packs', packsSub: 'Sample-based sounds are planned after the core play loop.', openMidi: 'Open MIDI monitor', language: 'Change language', theme: 'Change theme', lightMode: 'Light mode', darkMode: 'Dark mode',
@@ -139,13 +145,19 @@ function App() {
   const [gameCombo, setGameCombo] = useState(0)
   const [gameAccuracy, setGameAccuracy] = useState(100)
   const [lastJudgment, setLastJudgment] = useState('—')
+  const [youtubeDraftUrl, setYoutubeDraftUrl] = useState('')
+  const [youtubeDraftOffset, setYoutubeDraftOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const pendingYoutubeRef = useRef<YouTubeSongSource | null>(null)
+  const youtubePlayerRef = useRef<YouTubePlayerHandle | null>(null)
+  const gamePositionRef = useRef(0)
   const judgedIdsRef = useRef<Set<string>>(new Set())
   const scoreStatsRef = useRef({ score: 0, combo: 0, hits: 0, attempts: 0 })
   const gameRef = useRef({ song: null as ImportedSong | null, targetTrackId: '', keyboardStart: 48 })
 
   const transport = useMemo(() => new SongTransport(audio, {
     onUpdate: (snapshot) => {
+      gamePositionRef.current = snapshot.position
       setGameState(snapshot.state)
       setGamePosition(snapshot.position)
       setGameSpeed(snapshot.speed)
@@ -157,6 +169,7 @@ function App() {
   }), [audio])
 
   gameRef.current = { song: activeSong, targetTrackId, keyboardStart }
+  gamePositionRef.current = gamePosition
 
   useEffect(() => {
     localStorage.setItem('minilab-language', language)
@@ -182,7 +195,8 @@ function App() {
     const game = gameRef.current
     const track = game.song?.tracks.find((candidate) => candidate.id === game.targetTrackId)
     if (!game.song || !track) return
-    const result = judgeInput(input, playableNotes(track, game.keyboardStart), transport.getPosition(), game.keyboardStart, judgedIdsRef.current)
+    const position = game.song.youtube ? gamePositionRef.current : transport.getPosition()
+    const result = judgeInput(input, playableNotes(track, game.keyboardStart), position, game.keyboardStart, judgedIdsRef.current)
     if (result.noteId) judgedIdsRef.current.add(result.noteId)
     const stats = scoreStatsRef.current
     stats.attempts += 1
@@ -303,6 +317,11 @@ function App() {
   useEffect(() => () => { if (recordingUrl) URL.revokeObjectURL(recordingUrl) }, [recordingUrl])
 
   const instrumentText = (instrument: InstrumentDefinition) => language === 'es' ? { name: instrument.nameEs, category: instrument.categoryEs, mood: instrument.moodEs } : { name: instrument.name, category: instrument.category, mood: instrument.mood }
+  const handleYouTubeTime = useCallback((position: number) => {
+    gamePositionRef.current = position
+    setGamePosition(position)
+  }, [])
+  const handleYouTubeState = useCallback((state: GameTransportState) => setGameState(state), [])
   const persistSongPreferences = (song: ImportedSong, preferences: StoredSong['preferences']) => {
     const existing = songLibrary.find((record) => record.song.id === song.id)
     void songStorage.save({ song, preferences: { ...existing?.preferences, ...preferences } }).then(() => songStorage.list().then(setSongLibrary))
@@ -310,37 +329,64 @@ function App() {
   const openSong = (song: ImportedSong, preferences?: StoredSong['preferences']) => {
     const target = song.tracks.find((track) => track.id === preferences?.targetTrackId) ?? pickTargetTrack(song)
     if (!target) { setTip(ui.songEmpty); return }
-    const nextView = preferences?.view ?? 'falling'
+    youtubePlayerRef.current?.pause()
+    transport.stop()
+    const nextView = preferences?.view ?? (song.youtube ? 'piano-roll' : 'falling')
     const nextSpeed = preferences?.speed ?? 1
     resetGameScore()
+    gamePositionRef.current = 0
     setActiveSong(song)
     setTargetTrackId(target.id)
     setGameView(nextView)
+    setGameState('stopped')
+    setGamePosition(0)
     setGameSpeed(nextSpeed)
     setKeyboardStart(chooseKeyboardStart(target))
-    transport.load(song, target.id)
-    transport.setSpeed(nextSpeed)
+    if (!song.youtube) {
+      transport.load(song, target.id)
+      transport.setSpeed(nextSpeed)
+    }
     setShowSongLibrary(false)
     persistSongPreferences(song, { targetTrackId: target.id, view: nextView, speed: nextSpeed })
     setTip(ui.songLoaded)
   }
-  const importSong = async (file: File) => {
+  const importSong = async (file: File, youtubeSource: YouTubeSongSource | null = null) => {
     if (!/\.midi?$/i.test(file.name)) { setTip(ui.midiOnly); return }
     setIsImportingSong(true)
     try {
-      const song = await parseMidiFile(file)
-      if (!song.tracks.length) throw new Error('empty')
-      await songStorage.save({ song, preferences: { targetTrackId: pickTargetTrack(song)?.id, view: 'falling', speed: 1 } })
+      const parsedSong = await parseMidiFile(file)
+      if (!parsedSong.tracks.length) throw new Error('empty')
+      const song = youtubeSource ? linkMidiToYouTube(parsedSong, youtubeSource) : parsedSong
+      const preferences: NonNullable<StoredSong['preferences']> = { targetTrackId: pickTargetTrack(song)?.id, view: youtubeSource ? 'piano-roll' : 'falling', speed: 1 }
+      await songStorage.save({ song, preferences })
       setSongLibrary(await songStorage.list())
-      openSong(song)
+      if (youtubeSource) {
+        setYoutubeDraftUrl('')
+        setYoutubeDraftOffset(0)
+      }
+      openSong(song, preferences)
+      if (youtubeSource) setTip(ui.youtubeLinked)
     } catch {
       setTip(ui.songError)
     } finally {
       setIsImportingSong(false)
+      pendingYoutubeRef.current = null
     }
+  }
+  const requestPlainMidi = () => {
+    pendingYoutubeRef.current = null
+    fileInputRef.current?.click()
+  }
+  const requestYouTubeMidi = () => {
+    pendingYoutubeRef.current = null
+    const youtubeSource = createYouTubeSongSource(youtubeDraftUrl, youtubeDraftOffset)
+    if (!youtubeSource) { setTip(ui.youtubeInvalid); return }
+    pendingYoutubeRef.current = youtubeSource
+    fileInputRef.current?.click()
   }
   const deleteSong = async (song: ImportedSong) => {
     if (activeSong?.id === song.id) {
+      youtubePlayerRef.current?.pause()
       transport.stop()
       setActiveSong(null)
       setTargetTrackId('')
@@ -356,31 +402,49 @@ function App() {
     resetGameScore()
     setTargetTrackId(trackId)
     setKeyboardStart(chooseKeyboardStart(track))
-    transport.setTargetTrack(trackId)
+    if (!activeSong.youtube) transport.setTargetTrack(trackId)
     persistSongPreferences(activeSong, { targetTrackId: trackId })
   }
   const closeSong = () => {
+    youtubePlayerRef.current?.pause()
     transport.stop()
+    gamePositionRef.current = 0
     setActiveSong(null)
     setTargetTrackId('')
     resetGameScore()
   }
   const toggleSongTransport = () => {
-    if (gameState === 'playing') transport.pause()
+    if (activeSong?.youtube) {
+      if (gameState === 'playing') youtubePlayerRef.current?.pause()
+      else youtubePlayerRef.current?.play()
+    } else if (gameState === 'playing') transport.pause()
     else void transport.play()
   }
   const restartSong = () => {
     resetGameScore()
-    transport.restart()
+    gamePositionRef.current = 0
+    setGamePosition(0)
+    if (activeSong?.youtube) youtubePlayerRef.current?.restart()
+    else transport.restart()
   }
   const changeSongView = (view: GameView) => {
     setGameView(view)
     if (activeSong) persistSongPreferences(activeSong, { view })
   }
   const changeSongSpeed = (speed: number) => {
-    setGameSpeed(speed)
-    transport.setSpeed(speed)
-    if (activeSong) persistSongPreferences(activeSong, { speed })
+    const nextSpeed = Math.max(0.5, Math.min(1.5, speed))
+    setGameSpeed(nextSpeed)
+    if (activeSong?.youtube) youtubePlayerRef.current?.setSpeed(nextSpeed)
+    else transport.setSpeed(nextSpeed)
+    if (activeSong) persistSongPreferences(activeSong, { speed: nextSpeed })
+  }
+  const changeYouTubeOffset = (offset: number) => {
+    if (!activeSong?.youtube) return
+    const nextOffset = Math.max(0, Math.min(600, Math.round(offset * 10) / 10))
+    const updatedSong: ImportedSong = { ...activeSong, youtube: { ...activeSong.youtube, offset: nextOffset } }
+    const existing = songLibrary.find((record) => record.song.id === updatedSong.id)
+    setActiveSong(updatedSong)
+    void songStorage.save({ song: updatedSong, preferences: existing?.preferences }).then(() => songStorage.list().then(setSongLibrary))
   }
   const pressNote = (note: number, velocity = 96, source: 'midi' | 'virtual' = 'virtual') => {
     void audio.start().then(() => { audio.noteOn(note, velocity); setIsAudioReady(true) })
@@ -430,7 +494,10 @@ function App() {
     </header>
 
     <main className={`workspace ${activeSong ? 'game-active' : ''}`}>
-      {activeSong && activeTargetTrack && <SongGame song={activeSong} targetTrack={activeTargetTrack} position={gamePosition} state={gameState} view={gameView} speed={gameSpeed} keyboardStart={keyboardStart} score={gameScore} combo={gameCombo} accuracy={gameAccuracy} judgment={lastJudgment} language={language} onViewChange={changeSongView} onPlayPause={toggleSongTransport} onRestart={restartSong} onClose={closeSong} onSpeedChange={changeSongSpeed} onTrackChange={changeTargetTrack} />}
+      {activeSong && activeTargetTrack && <div className={`game-session-layout ${activeSong.youtube ? 'youtube-active' : ''}`}>
+        {activeSong.youtube && <YouTubePlayer ref={youtubePlayerRef} videoId={activeSong.youtube.videoId} url={activeSong.youtube.url} offset={activeSong.youtube.offset} duration={activeSong.duration} speed={gameSpeed} language={language} onTime={handleYouTubeTime} onStateChange={handleYouTubeState} onOffsetChange={changeYouTubeOffset} />}
+        <SongGame song={activeSong} targetTrack={activeTargetTrack} position={gamePosition} state={gameState} view={gameView} speed={gameSpeed} keyboardStart={keyboardStart} score={gameScore} combo={gameCombo} accuracy={gameAccuracy} judgment={lastJudgment} language={language} onViewChange={changeSongView} onPlayPause={toggleSongTransport} onRestart={restartSong} onClose={closeSong} onSpeedChange={changeSongSpeed} onTrackChange={changeTargetTrack} />
+      </div>}
       <section className="hero-row"><div><p className="section-kicker"><span className="live-dot" /> {ui.freePlay}</p><h2>{ui.heroTitle} <em>{ui.heroEmphasis}</em></h2><p className="hero-copy">{ui.heroCopy}</p></div><div className="tempo-card"><span className="tempo-label">{ui.tempo}</span><div className="tempo-value"><span>♩</span><strong>{bpm}</strong><small>{ui.bpm}</small></div><div className="tempo-controls"><button aria-label={ui.slower} onClick={() => updateBpm(bpm - 1)}>−</button><button aria-label={ui.faster} onClick={() => updateBpm(bpm + 1)}>+</button></div><button className={`transport-button ${isTransportPlaying ? 'active' : ''}`} aria-label={isTransportPlaying ? ui.pause : ui.start} onClick={() => setIsTransportPlaying((value) => !value)}>{isTransportPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}<span>{isTransportPlaying ? ui.pause : ui.start}</span></button><div className="beat-dots" aria-label={ui.metronome}>{[0, 1, 2, 3].map((item) => <span key={item} className={isTransportPlaying && beat === item ? 'current' : ''} />)}</div></div></section>
 
       <section className="instrument-section panel"><div className="panel-heading"><div><span className="section-kicker">{ui.chooseSound}</span><h3>{instrumentText(selectedInstrument).name} <span className="muted">/ {instrumentText(selectedInstrument).mood}</span></h3></div><div className="sound-actions"><button className="inspire-button" onClick={inspire}><Lightbulb size={14} /> {ui.inspire}</button><button className="text-button" onClick={() => setShowSettings(true)}>{ui.soundSettings} <ChevronDown size={15} /></button></div></div><div className="instrument-grid">{instruments.map((instrument) => <button className={`instrument-card ${selectedInstrument.id === instrument.id ? 'selected' : ''}`} key={instrument.id} onClick={() => setSelectedInstrument(instrument)} style={{ '--instrument-color': instrument.color } as CSSProperties}><span className="instrument-icon">{instrument.icon}</span><span className="instrument-name">{instrumentText(instrument).name}</span><span className="instrument-category">{instrumentText(instrument).category}</span></button>)}<button className="instrument-card add-card" onClick={() => setTip(language === 'es' ? 'Los packs importados llegarán después del motor de loops' : 'Imported packs arrive after the loop engine')}><span className="instrument-icon"><Plus size={20} /></span><span className="instrument-name">{language === 'es' ? 'Nuevo sonido' : 'New sound'}</span><span className="instrument-category">{language === 'es' ? 'pronto' : 'soon'}</span></button></div></section>
@@ -444,7 +511,19 @@ function App() {
 
     <footer className="footer"><span><span className="footer-status" /> {isAudioReady ? ui.audioReady : ui.audioWaiting}</span><span>{ui.footer}</span></footer>
 
-    {showSongLibrary && <div className="modal-backdrop" onClick={() => setShowSongLibrary(false)}><div className="song-library-modal" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="section-kicker">{ui.songs}</span><h3>{ui.songLibrary}</h3></div><button className="icon-button" onClick={() => setShowSongLibrary(false)}><X size={17} /></button></div><input ref={fileInputRef} className="visually-hidden" type="file" accept=".mid,.midi,audio/midi" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importSong(file); event.currentTarget.value = '' }} /><button className="song-drop-zone" onClick={() => fileInputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file) void importSong(file) }}><Upload size={22} /><strong>{isImportingSong ? ui.loadingSong : ui.dropSong}</strong><small>{ui.midiOnly}</small></button><div className="song-library-list">{songLibrary.length ? songLibrary.map((record) => <div className="song-library-row" key={record.song.id}><div className="song-library-info"><Music2 size={16} /><div><strong>{record.song.name}</strong><small>{record.song.tracks.length} pistas · {formatDuration(record.song.duration)}</small></div></div><div className="song-library-actions"><button className="outline-button" onClick={() => openSong(record.song, record.preferences)}>{ui.openSong}</button><button className="icon-button danger" aria-label={ui.deleteSong} title={ui.deleteSong} onClick={() => void deleteSong(record.song)}><Trash2 size={15} /></button></div></div>) : <div className="song-library-empty"><Music2 size={22} /><span>{ui.noSongs}</span></div>}</div></div></div>}
+    {showSongLibrary && <div className="modal-backdrop" onClick={() => setShowSongLibrary(false)}>
+      <div className="song-library-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header"><div><span className="section-kicker">{ui.songs}</span><h3>{ui.songLibrary}</h3></div><button className="icon-button" onClick={() => setShowSongLibrary(false)}><X size={17} /></button></div>
+        <input ref={fileInputRef} className="visually-hidden" type="file" accept=".mid,.midi,audio/midi" onChange={(event) => { const file = event.target.files?.[0]; const youtubeSource = pendingYoutubeRef.current; pendingYoutubeRef.current = null; if (file) void importSong(file, youtubeSource); event.currentTarget.value = '' }} />
+        <section className="youtube-linker">
+          <div className="youtube-linker-heading"><div className="youtube-linker-icon"><Youtube size={18} /></div><div><strong>{ui.youtubeMusic}</strong><small>{ui.youtubeHint}</small></div><button className="text-button" onClick={() => window.open('https://music.youtube.com/', '_blank', 'noopener,noreferrer')}><Youtube size={14} /> {ui.youtubeSearch}</button></div>
+          <div className="youtube-linker-fields"><label><span>{ui.youtubeUrl}</span><input type="url" value={youtubeDraftUrl} placeholder={ui.youtubePlaceholder} onChange={(event) => setYoutubeDraftUrl(event.target.value)} /></label><label className="youtube-offset-field"><span>{ui.youtubeOffset}</span><div><input type="number" min="0" max="600" step="0.1" value={youtubeDraftOffset} onChange={(event) => setYoutubeDraftOffset(Number(event.target.value))} /><small>s</small></div></label><button className="outline-button youtube-link-button" onClick={requestYouTubeMidi} disabled={isImportingSong}><Link2 size={15} /> {ui.youtubeLinkMidi}</button></div>
+        </section>
+        <div className="song-library-separator"><span>{ui.midiAlternative}</span></div>
+        <button className="song-drop-zone" onClick={requestPlainMidi} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); pendingYoutubeRef.current = null; const file = event.dataTransfer.files[0]; if (file) void importSong(file) }}><Upload size={22} /><strong>{isImportingSong ? ui.loadingSong : ui.dropSong}</strong><small>{ui.midiOnly}</small></button>
+        <div className="song-library-list">{songLibrary.length ? songLibrary.map((record) => <div className="song-library-row" key={record.song.id}><div className="song-library-info">{record.song.youtube ? <Youtube size={16} /> : <Music2 size={16} />}<div><strong>{record.song.name}</strong><small>{record.song.youtube ? 'YouTube Music + MIDI' : 'MIDI'} · {record.song.tracks.length} {language === 'es' ? 'pistas' : 'tracks'} · {formatDuration(record.song.duration)}</small></div></div><div className="song-library-actions"><button className="outline-button" onClick={() => openSong(record.song, record.preferences)}>{ui.openSong}</button><button className="icon-button danger" aria-label={ui.deleteSong} title={ui.deleteSong} onClick={() => void deleteSong(record.song)}><Trash2 size={15} /></button></div></div>) : <div className="song-library-empty"><Music2 size={22} /><span>{ui.noSongs}</span></div>}</div>
+      </div>
+    </div>}
 
     {showMonitor && <div className="modal-backdrop" onClick={() => setShowMonitor(false)}><div className="monitor-modal" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="section-kicker">{ui.devTool}</span><h3>{ui.midiMonitor}</h3></div><button className="icon-button" onClick={() => setShowMonitor(false)}><X size={17} /></button></div><div className="monitor-caption"><span>{ui.liveMessages} {activeDevice?.name || (language === 'es' ? 'tu controlador' : 'your controller')}</span><span>{logs.length} {ui.events}</span></div><div className="event-list">{logs.length ? logs.map((event) => <div className="event-row" key={event.id}><span className={`event-type ${event.type === 'NOTE ON' ? 'note' : event.type === 'CC' ? 'cc' : ''}`}>{event.type}</span><strong>{event.label}</strong><span>{event.detail}</span><time>{event.time}</time></div>) : <div className="empty-events"><Activity size={24} /><span>{ui.emptyEvents}</span></div>}</div><div className="modal-footer"><span><span className="status-dot connected" /> {ui.listener}</span><button className="text-button" onClick={() => setLogs([])}><RotateCcw size={14} /> {ui.clear}</button></div></div></div>}
     {showSettings && <div className="modal-backdrop" onClick={() => setShowSettings(false)}><div className="settings-modal" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="section-kicker">{ui.settings}</span><h3>{ui.keepSimple}</h3></div><button className="icon-button" onClick={() => setShowSettings(false)}><X size={17} /></button></div><div className="settings-list"><div><span>{ui.scale}</span><small>{ui.scaleSub}</small></div><div><span>{ui.output}</span><small>{ui.outputSub}</small></div><div><span>{ui.packs}</span><small>{ui.packsSub}</small></div></div><button className="outline-button full" onClick={() => { setShowSettings(false); setShowMonitor(true) }}><Activity size={15} /> {ui.openMidi}</button></div></div>}

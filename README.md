@@ -18,10 +18,11 @@ La aplicación ya incluye:
 - importación local de `.mid`/`.midi` por selector o arrastrar y soltar;
 - biblioteca de canciones persistente en IndexedDB con fallback local;
 - selección automática/manual de pista objetivo y acompañamiento sintetizado;
-- modo canción con notas descendentes, piano-roll, puntuación, combo, precisión, pausa, reinicio y velocidad 50–150%;
+- modos Guitar Hero y Rocksmith diseñados para las 25 teclas del MiniLab 3, con puntuación, combo, precisión, pausa, reinicio y velocidad 50–150%;
+- enlace de YouTube Music + chart MIDI local, reproductor oficial visible, sincronización y calibración de offset disponible en ambas vistas;
 - adaptación automática al rango visual de 25 teclas.
 
-La aplicación no tiene backend ni sube canciones. MP3/WAV, audio-to-MIDI, loops editables y capas MIDI siguen fuera del alcance actual.
+La aplicación no tiene backend ni sube canciones. MP3/WAV, conversión automática de audio de YouTube a notas, loops editables y capas MIDI siguen fuera del alcance actual.
 
 ## Inicio rápido
 
@@ -55,6 +56,7 @@ En Windows, el acceso recomendado es ejecutar `iniciar_minilab.vbs`. El launcher
 src/
   App.tsx                 orquestación de la interfaz y estado de sesión
   components/SongGame.tsx modo canción
+  components/YouTubePlayer.tsx reproductor oficial y reloj del chart vinculado
   styles.css              layout, responsive y temas claro/oscuro
   types.ts                contratos compartidos
   lib/
@@ -65,6 +67,7 @@ src/
     songParser.ts         normalización de archivos MIDI
     songStorage.ts        IndexedDB con fallback local
     songTransport.ts      transporte y acompañamiento
+    youtube.ts            validación de enlaces y asociación YouTube + MIDI
     storage.ts            BPM persistente
     *.test.ts             pruebas unitarias
 docs/
@@ -78,4 +81,4 @@ docs/
 
 Web MIDI necesita un navegador compatible, normalmente Chrome o Edge, y permisos para el dispositivo. El primer sonido requiere una interacción del usuario por las políticas de autoplay. Si Web MIDI no está disponible, el teclado virtual continúa funcionando.
 
-YouTube Music no está integrado. Si se agrega en el futuro, debe limitarse a búsqueda/enlace y reproducción mediante APIs y reproductor oficiales visible; no se debe descargar, separar, almacenar ni convertir audio de YouTube en charts.
+YouTube Music se vincula pegando el enlace de una canción y seleccionando un MIDI que contiene las notas. El reproductor oficial permanece visible y guía el tiempo del chart. La aplicación no descarga, separa, almacena ni convierte el audio de YouTube; algunos videos pueden impedir la reproducción embebida.

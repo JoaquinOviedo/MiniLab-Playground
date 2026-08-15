@@ -7,7 +7,7 @@
 - Stack: React 18 + TypeScript + Vite + Web Audio API + Web MIDI API
 - Runtime mínimo declarado: Node `>=18.18.0`
 - Puerto local: `5173`
-- Baseline verificado: commit `0ffc125` (`Add light and dark themes`)
+- Baseline documentado: temas claro/oscuro + modos Guitar Hero/Rocksmith YouTube/MIDI
 - Rama observada al documentar: `agent/song-mode-midi`
 - Última auditoría: 2026-08-15
 
@@ -41,11 +41,23 @@ Este documento resume el estado real que debe asumir una futura modificación. S
 - `songStorage` guarda canciones y preferencias en IndexedDB; usa `localStorage` como fallback.
 - Se selecciona automáticamente una pista melódica probable, con selección manual disponible.
 - La pista objetivo no se programa como acompañamiento; las demás pistas se sintetizan con los timbres aproximados disponibles.
-- Vistas: notas descendentes (`falling`) y piano-roll (`piano-roll`).
+- Vistas: Guitar Hero con notas descendentes (`falling`) y Rocksmith con piano-roll horizontal (`piano-roll`). Ambas representan las 25 teclas del MiniLab 3, no cuerdas ni trastes.
 - Transporte: reproducir, pausar, reiniciar y velocidad entre `0.5` y `1.5`.
 - `SongTransport` comparte el `AudioContext` con `AudioEngine`, programa notas con look-ahead y actualiza la UI cada 25 ms.
 - El rango jugable es de 25 teclas; `gameScoring.ts` conserva la nota MIDI original y la transporta por octavas para la vista y la entrada.
 - La ventana de juicio es de aproximadamente `±150 ms`; la puntuación combina 70% sincronización y 30% velocidad MIDI. El teclado virtual no penaliza velocidad.
+
+### Guitar Hero y Rocksmith para MiniLab 3
+
+- La biblioteca permite pegar un enlace de YouTube Music/YouTube y vincularlo con un `.mid`/`.midi` local.
+- `src/lib/youtube.ts` valida el video ID y agrega `youtube { videoId, url, offset }` al `ImportedSong`; el registro persiste en la misma biblioteca IndexedDB.
+- `src/components/YouTubePlayer.tsx` monta el IFrame Player oficial y visible. Sus estados play/pause/ended y `getCurrentTime()` controlan la posición del chart.
+- Para una canción vinculada no se programa acompañamiento sintetizado: YouTube aporta el audio y el MIDI aporta exclusivamente las notas objetivo.
+- El usuario puede calibrar el segundo del video donde empieza el MIDI con pasos de 0,1 s. El offset se guarda en la canción.
+- La vista Guitar Hero hace descender las notas hacia 25 carriles alineados con el teclado. La vista Rocksmith desplaza las notas horizontalmente hacia una línea de acierto.
+- En canciones vinculadas la vista inicial es Rocksmith, pero se puede alternar a Guitar Hero sin perder la posición. Las dos adaptan las notas al mismo rango de 25 teclas del MiniLab 3.
+- La velocidad usa pasos compatibles habituales de 50%, 75%, 100%, 125% y 150%.
+- La grabación del master no incluye el audio de YouTube porque este permanece dentro del reproductor oficial.
 
 ### Temas e idioma
 
@@ -61,6 +73,7 @@ Este documento resume el estado real que debe asumir una futura modificación. S
 | --- | --- | --- |
 | `src/App.tsx` | Orquestación de UI, estado, idioma, tema, grabación, MIDI y sesión canción | se cambia un flujo visible o una coordinación entre motores |
 | `src/components/SongGame.tsx` | Barra y tablero del modo canción | se cambia la interacción visual de juego |
+| `src/components/YouTubePlayer.tsx` | Reproductor visible, reloj, velocidad y offset de YouTube | se cambia la sincronización YouTube/MIDI |
 | `src/types.ts` | Contratos de instrumentos, MIDI, canciones y sesión | se agrega o modifica un dato compartido |
 | `src/styles.css` | Sistema visual, responsive, teclado, modales y temas | se cambia layout, legibilidad o apariencia |
 | `src/lib/audioEngine.ts` | AudioContext, voces, metrónomo, grabación y notas programadas | se cambia síntesis o scheduling de audio |
@@ -69,6 +82,7 @@ Este documento resume el estado real que debe asumir una futura modificación. S
 | `src/lib/songParser.ts` | Conversión de MIDI a `ImportedSong` | se cambia importación, selección automática o metadatos |
 | `src/lib/songStorage.ts` | Persistencia de biblioteca y preferencias | se cambia IndexedDB, fallback o migración |
 | `src/lib/songTransport.ts` | Reloj de canción, acompañamiento y velocidad | se cambia play/pause/scheduling |
+| `src/lib/youtube.ts` | Validación de URLs y asociación del chart MIDI con un video | se cambia la fuente YouTube |
 | `src/lib/gameScoring.ts` | Rango de 25 teclas, juicio y precisión | se cambia adaptación o puntuación |
 | `src/lib/storage.ts` | BPM persistente | se cambia una preferencia pequeña |
 | `src/lib/*.test.ts` | Pruebas unitarias de parser y puntuación | se cambia una regla determinista |
@@ -96,12 +110,12 @@ Este documento resume el estado real que debe asumir una futura modificación. S
 - MP3/WAV no se convierten a notas; el modo canción trabaja con MIDI.
 - No existe todavía un loop engine editable: el botón Loop y las capas siguen siendo un siguiente milestone.
 - La conexión y el mapping del MiniLab físico no se validaron en cada navegador/preset; Web MIDI no estuvo disponible en el navegador de validación.
-- YouTube Music no está integrado. La futura integración permitida es búsqueda/enlace y reproducción mediante APIs/reproductor oficiales visible; no se debe descargar, separar ni convertir audio de YouTube en charts.
+- YouTube Music requiere pegar un enlace y aportar un MIDI local. No existe búsqueda interna ni conversión automática del audio; algunos videos no permiten reproducción embebida.
 - El proyecto no tiene variables de entorno requeridas actualmente.
 
 ## Próxima lectura según la tarea
 
 - UI, tema, idioma o responsive: `src/App.tsx` + `src/styles.css` + sección de temas de este archivo.
 - MIDI/MiniLab: `src/lib/midiEngine.ts` + `src/lib/minilabMapping.ts` + `docs/ARCHITECTURE.md`.
-- Canciones: `src/types.ts`, `songParser.ts`, `songStorage.ts`, `songTransport.ts`, `gameScoring.ts` y `SongGame.tsx`.
+- Canciones: `src/types.ts`, `songParser.ts`, `songStorage.ts`, `songTransport.ts`, `gameScoring.ts` y `SongGame.tsx`; si usa YouTube, también `youtube.ts` y `YouTubePlayer.tsx`.
 - Launcher: `iniciar_minilab.bat`, `iniciar_minilab.vbs` y la sección correspondiente de `docs/DEVELOPMENT.md`.

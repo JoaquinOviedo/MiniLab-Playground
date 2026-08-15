@@ -224,7 +224,7 @@ h2 em { font-weight: 400; color: #baa9f5; }
 .song-scorebar small { color: #848b97; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
 .last-judgment { margin-left: auto; color: #aaa1c9; font: 12px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
 .last-judgment.perfect { color: #9de5d3; text-shadow: 0 0 12px #83d9c555; }
-.song-library-modal { width: min(700px, 100%); max-height: min(720px, 90vh); overflow: auto; padding: 24px; border: 1px solid #3a3e47; border-radius: 15px; background: #17191f; box-shadow: 0 25px 80px #000b; }
+.song-library-modal { width: min(800px, 100%); max-height: min(760px, 90vh); overflow: auto; padding: 24px; border: 1px solid #3a3e47; border-radius: 15px; background: #17191f; box-shadow: 0 25px 80px #000b; }
 .song-drop-zone { width: 100%; display: grid; justify-items: center; gap: 8px; margin-top: 24px; padding: 24px 18px; border: 1px dashed #6d5e9c; border-radius: 11px; background: #28223b80; color: #d8d0fb; }
 .song-drop-zone:hover { background: #352d4d; border-color: #b4a5ff; }
 .song-drop-zone svg { color: #b9a9ff; }
@@ -263,6 +263,63 @@ h2 em { font-weight: 400; color: #baa9f5; }
   .song-board { height: 250px; }
   .song-library-row { align-items: flex-start; flex-direction: column; }
   .song-library-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* YouTube-backed Guitar Hero/Rocksmith mode. The official player remains visible beside the MIDI chart. */
+.game-session-layout { min-width: 0; }
+.game-session-layout.youtube-active { display: grid; grid-template-columns: minmax(290px, .72fr) minmax(0, 1.45fr); gap: 14px; align-items: stretch; }
+.game-session-layout.youtube-active .song-game { min-width: 0; }
+.youtube-player-card { min-width: 0; padding: 18px; display: flex; flex-direction: column; gap: 13px; overflow: hidden; }
+.youtube-player-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.youtube-player-heading .section-kicker { display: flex; align-items: center; gap: 6px; color: #c8baff; }
+.youtube-player-heading strong { display: block; margin-top: 6px; color: #9ba0aa; font: 10px 'DM Mono'; font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
+.youtube-player-heading a { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid #3a3f48; border-radius: 8px; color: #a99af0; background: #1c1f25; }
+.youtube-player-frame, .youtube-player-card iframe { width: 100% !important; aspect-ratio: 16 / 9; min-height: 170px; border: 0; border-radius: 9px; background: #090a0d; }
+.youtube-player-status { display: flex; align-items: center; gap: 8px; color: #8f96a0; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .05em; }
+.youtube-player-status.ready { color: #85c9bb; }
+.youtube-player-status.ready .status-dot { background: #79ceb7; }
+.youtube-player-status.error { color: #e9a58d; }
+.youtube-player-status.error .status-dot { background: #e79479; }
+.youtube-sync-control { margin-top: auto; display: grid; grid-template-columns: 1fr 29px 68px 29px; align-items: center; gap: 5px; padding-top: 12px; border-top: 1px solid #2d323a; }
+.youtube-sync-control strong, .youtube-sync-control small { display: block; }
+.youtube-sync-control strong { color: #b8bbc2; font-size: 10px; }
+.youtube-sync-control small { margin-top: 3px; color: #777d86; font: 9px 'DM Mono'; }
+.youtube-sync-control button { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid #393f49; border-radius: 7px; color: #b3a5eb; background: #20242b; }
+.youtube-sync-control input { width: 68px; height: 29px; border: 1px solid #393f49; border-radius: 7px; color: #e4dff0; background: #111419; text-align: center; font: 10px 'DM Mono'; }
+.rocksmith-game .roll-note { height: 15px; box-shadow: 0 0 18px #a999e680, inset 0 -2px #ffffff66; }
+
+.youtube-linker { margin-top: 24px; padding: 16px; border: 1px solid #463d61; border-radius: 11px; background: linear-gradient(145deg, #251f35, #191a21); }
+.youtube-linker-heading { display: flex; align-items: center; gap: 10px; }
+.youtube-linker-icon { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px; color: #f1b0a0; background: #42272a; }
+.youtube-linker-heading > div:nth-child(2) { min-width: 0; flex: 1; }
+.youtube-linker-heading strong, .youtube-linker-heading small { display: block; }
+.youtube-linker-heading strong { font-size: 11px; letter-spacing: .04em; }
+.youtube-linker-heading small { margin-top: 4px; color: #9891a7; font: 9px 'DM Mono'; line-height: 1.45; }
+.youtube-linker-heading .text-button { flex: 0 0 auto; }
+.youtube-linker-fields { display: grid; grid-template-columns: minmax(0, 1fr) 105px auto; align-items: end; gap: 9px; margin-top: 14px; }
+.youtube-linker-fields label { display: grid; gap: 6px; color: #999fac; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .06em; }
+.youtube-linker-fields input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #3b414c; border-radius: 8px; background: #111419; color: #e5e0eb; font: 10px 'DM Mono'; }
+.youtube-offset-field > div { position: relative; }
+.youtube-offset-field small { position: absolute; right: 9px; top: 11px; color: #777e88; font: 9px 'DM Mono'; }
+.youtube-offset-field input { padding-right: 24px; }
+.youtube-link-button { height: 36px; white-space: nowrap; }
+.youtube-link-button:disabled { opacity: .55; cursor: wait; }
+.song-library-separator { display: flex; align-items: center; gap: 12px; margin: 18px 0 -7px; color: #7f8490; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
+.song-library-separator::before, .song-library-separator::after { content: ''; height: 1px; flex: 1; background: #2c3038; }
+
+@media (max-width: 900px) {
+  .game-session-layout.youtube-active { grid-template-columns: 1fr; }
+  .youtube-player-card { display: grid; grid-template-columns: minmax(260px, .9fr) minmax(220px, 1fr); align-items: start; }
+  .youtube-player-heading, .youtube-player-status, .youtube-sync-control { grid-column: 2; }
+  .youtube-player-frame, .youtube-player-card iframe { grid-column: 1; grid-row: 1 / span 3; }
+}
+
+@media (max-width: 650px) {
+  .youtube-player-card { display: flex; }
+  .youtube-linker-heading { align-items: flex-start; flex-wrap: wrap; }
+  .youtube-linker-heading .text-button { width: 100%; margin-top: 4px; }
+  .youtube-linker-fields { grid-template-columns: 1fr 92px; }
+  .youtube-link-button { grid-column: 1 / -1; }
 }
 
 /* Focus mode: keep the main surface about choosing a sound and playing the keys. */
@@ -497,3 +554,22 @@ h2 em { font-weight: 400; color: #baa9f5; }
 :root[data-theme='light'] .recording-result { border-color: #d1c5e4; background: #f0ebff; }
 :root[data-theme='light'] .recording-result-heading strong { color: #4b416c; }
 :root[data-theme='light'] .recording-result-heading small { color: #776d96; }
+:root[data-theme='light'] .youtube-player-heading .section-kicker { color: #6653a7; }
+:root[data-theme='light'] .youtube-player-heading strong,
+:root[data-theme='light'] .youtube-player-status { color: var(--theme-muted); }
+:root[data-theme='light'] .youtube-player-heading a,
+:root[data-theme='light'] .youtube-sync-control button { border-color: var(--theme-border-strong); color: #6554a2; background: var(--theme-control); }
+:root[data-theme='light'] .youtube-player-frame,
+:root[data-theme='light'] .youtube-player-card iframe { background: #ddd8d0; }
+:root[data-theme='light'] .youtube-sync-control { border-color: var(--theme-border); }
+:root[data-theme='light'] .youtube-sync-control strong { color: #595a62; }
+:root[data-theme='light'] .youtube-sync-control small { color: var(--theme-muted); }
+:root[data-theme='light'] .youtube-sync-control input,
+:root[data-theme='light'] .youtube-linker-fields input { border-color: var(--theme-border-strong); color: var(--theme-text); background: var(--theme-control); color-scheme: light; }
+:root[data-theme='light'] .youtube-linker { border-color: #cfc3e7; background: linear-gradient(145deg, #f0ebff, #faf7f2); }
+:root[data-theme='light'] .youtube-linker-icon { color: #a44f47; background: #ffe6df; }
+:root[data-theme='light'] .youtube-linker-heading small,
+:root[data-theme='light'] .youtube-linker-fields label { color: var(--theme-muted); }
+:root[data-theme='light'] .song-library-separator { color: var(--theme-muted); }
+:root[data-theme='light'] .song-library-separator::before,
+:root[data-theme='light'] .song-library-separator::after { background: var(--theme-border); }

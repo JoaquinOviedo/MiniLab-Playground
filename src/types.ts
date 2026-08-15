@@ -34,7 +34,13 @@ export interface NoteEvent {
   channel: number
 }
 
-export type SongSource = 'midi'
+export type SongSource = 'midi' | 'youtube-midi'
+
+export interface YouTubeSongSource {
+  videoId: string
+  url: string
+  offset: number
+}
 
 export interface TempoPoint {
   bpm: number
@@ -70,6 +76,7 @@ export interface ImportedSong {
   timeSignature: [number, number]
   tracks: SongTrack[]
   importedAt: number
+  youtube?: YouTubeSongSource
 }
 
 export type GameView = 'falling' | 'piano-roll'

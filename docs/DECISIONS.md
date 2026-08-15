@@ -60,8 +60,8 @@ El launcher solo actualiza con fast-forward, conserva cambios locales, instala d
 
 ## D-008 — Límite de YouTube Music
 
-**Estado:** decisión para una futura integración.
+**Estado:** vigente e implementada.
 
-Se puede explorar búsqueda/enlaces y reproducción mediante APIs/reproductor oficial visible, pero la aplicación no descargará, separará, almacenará ni analizará el audio de YouTube para crear notas.
+La aplicación vincula una URL de YouTube Music con un MIDI local. El reproductor IFrame oficial permanece visible y aporta el reloj; el MIDI aporta las notas del MiniLab. El offset se calibra y persiste con la canción. La aplicación no descarga, separa, almacena ni analiza el audio de YouTube para crear notas.
 
-**Consecuencia:** una canción seleccionada desde YouTube podría funcionar como referencia/reproductor, mientras que el juego necesita un MIDI local o una fuente autorizada independiente.
+**Consecuencia:** una canción de YouTube solo es jugable cuando tiene un chart MIDI asociado. Videos no embebibles no pueden usarse en este modo. La grabación interna no captura el audio de YouTube.

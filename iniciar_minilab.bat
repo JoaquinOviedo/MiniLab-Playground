@@ -60,8 +60,14 @@ if errorlevel 1 (
   call :log "El servidor ya estaba iniciado"
 )
 
-rem Abre la aplicacion cuando responde; todo este proceso se ejecuta oculto desde el acceso directo.
-powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "$ready=$false; 1..20 | %% { try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/ -TimeoutSec 1; if($r.StatusCode -eq 200){$ready=$true; break} } catch {}; Start-Sleep -Milliseconds 250 }; if($ready){Start-Process 'http://127.0.0.1:5173/'}" >nul 2>&1
+rem PowerShell solo espera la respuesta; Windows abre el navegador fuera del proceso oculto.
+powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "$ready=$false; 1..20 | %% { try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/ -TimeoutSec 1; if($r.StatusCode -eq 200){$ready=$true; break} } catch {}; Start-Sleep -Milliseconds 250 }; if($ready){exit 0}else{exit 1}" >nul 2>&1
+if not errorlevel 1 (
+  start "" "http://127.0.0.1:5173/"
+  call :log "Servidor verificado; navegador abierto"
+) else (
+  call :log "El servidor no respondio a tiempo; no se abrio el navegador"
+)
 call :log "Launcher listo"
 exit /b 0
 

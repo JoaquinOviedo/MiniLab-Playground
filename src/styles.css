@@ -319,3 +319,181 @@ h2 em { font-weight: 400; color: #baa9f5; }
   .controller-footnote { font-size: 9px; }
   .controller-footnote span:last-child { display: none; }
 }
+
+/* Light theme: preserve the calm visual hierarchy while lifting the contrast. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --theme-page: #f4f1ec;
+  --theme-surface: #fffdf9;
+  --theme-surface-soft: #f1ede7;
+  --theme-surface-muted: #e9e4dd;
+  --theme-control: #f8f5f0;
+  --theme-border: #ded8d0;
+  --theme-border-strong: #c9c1b6;
+  --theme-text: #29272e;
+  --theme-muted: #6f7078;
+  --theme-subtle: #8a898d;
+  --theme-accent: #6653a7;
+  --theme-accent-soft: #eeeaff;
+  --theme-shadow: #4b3a1518;
+  background: var(--theme-page);
+  color: var(--theme-text);
+}
+
+:root[data-theme='light'] body {
+  background: var(--theme-page);
+  color: var(--theme-text);
+}
+
+:root[data-theme='light'] .app-shell {
+  color: var(--theme-text);
+  background: radial-gradient(circle at 50% -20%, #ffffff 0%, #f8f5f0 42%, var(--theme-page) 78%);
+}
+
+:root[data-theme='light'] .ambient { opacity: .11; }
+:root[data-theme='light'] .topbar { border-color: var(--theme-border); }
+:root[data-theme='light'] .brand-mark { border-color: #d2c8e9; color: var(--theme-accent); background: var(--theme-accent-soft); box-shadow: 0 0 24px #8b77ff1a; }
+:root[data-theme='light'] .eyebrow { color: #7c7b82; }
+:root[data-theme='light'] .section-kicker { color: #696775; }
+:root[data-theme='light'] h2 em { color: #7664b6; }
+:root[data-theme='light'] .hero-copy { color: var(--theme-muted); }
+:root[data-theme='light'] .tempo-label,
+:root[data-theme='light'] .instrument-category,
+:root[data-theme='light'] .mapping-note,
+:root[data-theme='light'] .hint-text,
+:root[data-theme='light'] .footer,
+:root[data-theme='light'] .monitor-caption,
+:root[data-theme='light'] .event-row,
+:root[data-theme='light'] .settings-list small { color: var(--theme-subtle); }
+:root[data-theme='light'] .tempo-value span { color: #806dc0; }
+:root[data-theme='light'] .tempo-value small { color: var(--theme-subtle); }
+:root[data-theme='light'] .tempo-controls button { color: #666872; background: var(--theme-control); border-color: var(--theme-border); }
+:root[data-theme='light'] .tempo-controls button:hover { background: var(--theme-surface-muted); border-color: var(--theme-border-strong); }
+
+:root[data-theme='light'] .panel,
+:root[data-theme='light'] .monitor-modal,
+:root[data-theme='light'] .settings-modal,
+:root[data-theme='light'] .song-library-modal {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  box-shadow: 0 16px 45px var(--theme-shadow);
+}
+
+:root[data-theme='light'] .connection-pill { color: var(--theme-muted); border-color: var(--theme-border-strong); background: #ffffff88; }
+:root[data-theme='light'] .connection-pill.connected { border-color: #a5d4c8; color: #39756a; background: #edf8f4; }
+:root[data-theme='light'] .connection-pill.unsupported { border-color: #e0b49f; color: #a15c42; background: #fff3ed; }
+:root[data-theme='light'] .icon-button,
+:root[data-theme='light'] .language-toggle { background: var(--theme-control); border-color: var(--theme-border); color: #686a73; }
+:root[data-theme='light'] .icon-button:hover,
+:root[data-theme='light'] .language-toggle:hover { color: var(--theme-text); border-color: var(--theme-border-strong); background: var(--theme-surface-muted); }
+:root[data-theme='light'] .song-top-button,
+:root[data-theme='light'] .inspire-button { color: #5f4e9d; border-color: #c9bde9; background: #f0ebff; }
+:root[data-theme='light'] .song-top-button:hover,
+:root[data-theme='light'] .inspire-button:hover { background: #e6ddff; border-color: #9987d1; }
+:root[data-theme='light'] .text-button { color: #6d687b; }
+:root[data-theme='light'] .text-button:hover { color: #4f4670; }
+
+:root[data-theme='light'] .instrument-card { background: var(--theme-surface-soft); border-color: var(--theme-border); }
+:root[data-theme='light'] .instrument-card:hover { border-color: var(--theme-border-strong); }
+:root[data-theme='light'] .instrument-card.selected { background: color-mix(in srgb, var(--instrument-color) 14%, var(--theme-surface)); border-color: color-mix(in srgb, var(--instrument-color) 58%, var(--theme-border-strong)); }
+:root[data-theme='light'] .add-card { background: transparent; }
+:root[data-theme='light'] .muted { color: #85838a; }
+:root[data-theme='light'] .controller-label { color: #666873; }
+:root[data-theme='light'] .key-count { color: #777983; }
+
+:root[data-theme='light'] .outline-button { background: var(--theme-control); border-color: var(--theme-border-strong); color: #4f5058; }
+:root[data-theme='light'] .outline-button:hover { background: var(--theme-surface-muted); border-color: #aaa19a; }
+:root[data-theme='light'] .device-select,
+:root[data-theme='light'] .song-control select { background: var(--theme-control); border-color: var(--theme-border-strong); color: var(--theme-text); color-scheme: light; }
+:root[data-theme='light'] .midi-line-info small { color: var(--theme-muted); }
+:root[data-theme='light'] .quick-action { border-color: var(--theme-border); }
+:root[data-theme='light'] .quick-action small { color: var(--theme-muted); }
+:root[data-theme='light'] .quick-action > svg { color: #89858e; }
+:root[data-theme='light'] .quick-action-icon { color: #6754a5; background: #eee9ff; }
+:root[data-theme='light'] .quick-action.playing .quick-action-icon { color: #397d6e; background: #e5f5ef; }
+:root[data-theme='light'] .knob-control { color: #686a73; }
+:root[data-theme='light'] .knob-control small { color: #85838a; }
+:root[data-theme='light'] .knob-visual { background: conic-gradient(#8b78cf var(--knob-progress), #d9d4dd 0); }
+:root[data-theme='light'] .knob-visual::before { background: #f3f0eb; }
+:root[data-theme='light'] .loop-button { background: #f0ebff; border-color: #c7bce5; }
+:root[data-theme='light'] .loop-button:hover { background: #e6ddff; }
+:root[data-theme='light'] .loop-button small { color: #776d96; }
+:root[data-theme='light'] .record-button,
+:root[data-theme='light'] .next-row,
+:root[data-theme='light'] .monitor-link { color: var(--theme-muted); }
+:root[data-theme='light'] .monitor-link span { background: var(--theme-surface-muted); color: #696a73; }
+
+:root[data-theme='light'] .keyboard { background: #d7d2cb; }
+:root[data-theme='light'] .white-key { border-color: #a7a19a; color: #5c5b61; }
+:root[data-theme='light'] .white-key:hover { background: linear-gradient(105deg, #ffffff, #d7d9d8); }
+:root[data-theme='light'] .black-key { background: linear-gradient(100deg, #555962, #1d2025 72%); border-color: #111318; }
+:root[data-theme='light'] .controller-footnote { color: #777780; }
+
+:root[data-theme='light'] .hardware-block { border-color: var(--theme-border); background: #f2eee8cc; }
+:root[data-theme='light'] .hardware-label-row { color: #686a73; }
+:root[data-theme='light'] .pad-bank-toggle button,
+:root[data-theme='light'] .pad-menu-trigger { border-color: var(--theme-border-strong); background: var(--theme-control); color: #686a73; }
+:root[data-theme='light'] .pad-bank-toggle button.selected { color: #5b4a99; background: #e8e0ff; border-color: #a998da; }
+:root[data-theme='light'] .pad-menu-trigger:hover,
+:root[data-theme='light'] .pad-menu-trigger.active { color: #55448e; border-color: #9a89cf; background: #eee9ff; }
+:root[data-theme='light'] .pad-menu { border-color: #cfc6dc; background: #fffdf9f7; box-shadow: 0 18px 45px #4b3a1524; }
+:root[data-theme='light'] .pad-menu-header { color: #6e6979; }
+:root[data-theme='light'] .menu-pad { border-color: var(--theme-border-strong); background: var(--theme-surface-muted); color: #6b6c73; }
+:root[data-theme='light'] .menu-pad:hover { background: #ded9d2; border-color: #aaa19a; }
+:root[data-theme='light'] .menu-pad.active { color: #fff; background: #7765b5; border-color: #9d8ed7; }
+:root[data-theme='light'] .mini-knob { background: conic-gradient(#8b78cf var(--knob-progress), #d9d4dd 0); }
+:root[data-theme='light'] .mini-knob::before { background: #f3f0eb; }
+:root[data-theme='light'] .mini-fader,
+:root[data-theme='light'] .hardware-encoder { color: #777780; }
+:root[data-theme='light'] .fader-rail { background: #d1cbd1; }
+:root[data-theme='light'] .transport-button { background: var(--theme-control); border-color: var(--theme-border-strong); color: #666872; }
+:root[data-theme='light'] .transport-button:hover,
+:root[data-theme='light'] .transport-button.active { color: #5d4b9e; border-color: #9987d1; background: #eee9ff; }
+:root[data-theme='light'] .beat-dots span { background: #c9c5cc; }
+
+:root[data-theme='light'] .modal-backdrop { background: #27252e80; }
+:root[data-theme='light'] .event-list { border-color: var(--theme-border); }
+:root[data-theme='light'] .event-row { border-color: var(--theme-border); color: #6d6e76; }
+:root[data-theme='light'] .event-row strong { color: var(--theme-text); }
+:root[data-theme='light'] .event-row time { color: #8a898e; }
+:root[data-theme='light'] .empty-events,
+:root[data-theme='light'] .modal-footer { color: var(--theme-muted); }
+:root[data-theme='light'] .settings-list,
+:root[data-theme='light'] .settings-list > div { border-color: var(--theme-border); }
+
+:root[data-theme='light'] .song-game-controls { border-color: var(--theme-border); }
+:root[data-theme='light'] .song-game-title small,
+:root[data-theme='light'] .song-game-meta,
+:root[data-theme='light'] .song-control,
+:root[data-theme='light'] .song-range { color: var(--theme-muted); }
+:root[data-theme='light'] .song-view-toggle { border-color: var(--theme-border); background: var(--theme-surface-soft); }
+:root[data-theme='light'] .song-view-toggle button { color: #777681; }
+:root[data-theme='light'] .song-view-toggle button.selected { color: #594a91; background: #e8e0ff; }
+:root[data-theme='light'] .song-round-button { border-color: var(--theme-border-strong); background: var(--theme-control); color: #6554a2; }
+:root[data-theme='light'] .song-round-button:hover { border-color: #9987d1; background: #eee9ff; }
+:root[data-theme='light'] .song-board { border-color: var(--theme-border); background: linear-gradient(180deg, #f5f2ed, #ebe7e1); }
+:root[data-theme='light'] .song-board::before { background: radial-gradient(circle at 50% 105%, #8c7bd52a, transparent 46%); }
+:root[data-theme='light'] .falling-lanes span,
+:root[data-theme='light'] .roll-grid span { border-color: #5d596b18; }
+:root[data-theme='light'] .falling-lanes span:nth-child(odd),
+:root[data-theme='light'] .roll-grid span:nth-child(odd) { background: #5d596b08; }
+:root[data-theme='light'] .falling-key-labels { color: #72727b; }
+:root[data-theme='light'] .hit-line,
+:root[data-theme='light'] .roll-hit-line { background: #806dc0; }
+:root[data-theme='light'] .hit-line span,
+:root[data-theme='light'] .roll-hit-line span { color: #71668b; }
+:root[data-theme='light'] .song-board-hint { color: #66589a; background: #fffdf9b8; }
+:root[data-theme='light'] .song-scorebar strong { color: var(--theme-text); }
+:root[data-theme='light'] .song-scorebar small { color: #7d7b84; }
+:root[data-theme='light'] .last-judgment { color: #756b91; }
+:root[data-theme='light'] .song-drop-zone { border-color: #a998d3; background: #f0ebffb8; color: #66559a; }
+:root[data-theme='light'] .song-drop-zone:hover { background: #e6ddff; border-color: #8d79c5; }
+:root[data-theme='light'] .song-drop-zone small { color: #80769b; }
+:root[data-theme='light'] .song-library-list,
+:root[data-theme='light'] .song-library-row { border-color: var(--theme-border); }
+:root[data-theme='light'] .song-library-info strong { color: var(--theme-text); }
+:root[data-theme='light'] .song-library-info small { color: var(--theme-muted); }
+:root[data-theme='light'] .song-library-empty { color: var(--theme-muted); }
+:root[data-theme='light'] .recording-result { border-color: #d1c5e4; background: #f0ebff; }
+:root[data-theme='light'] .recording-result-heading strong { color: #4b416c; }
+:root[data-theme='light'] .recording-result-heading small { color: #776d96; }

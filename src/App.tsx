@@ -12,6 +12,7 @@ import {
   Languages,
   Lightbulb,
   Menu,
+  Moon,
   Music2,
   Pause,
   Play,
@@ -20,6 +21,7 @@ import {
   RotateCcw,
   Settings2,
   Square,
+  Sun,
   Trash2,
   Upload,
   Waves,
@@ -36,6 +38,7 @@ import { SongGame } from './components/SongGame'
 import type { GameTransportState, GameView, ImportedSong, InstrumentDefinition, MidiLogEvent, MidiNoteInput, SongTrack } from './types'
 
 type Language = 'es' | 'en'
+type Theme = 'dark' | 'light'
 
 const instruments: InstrumentDefinition[] = [
   { id: 'soft-piano', name: 'Soft Piano', nameEs: 'Piano suave', category: 'Keys', categoryEs: 'Teclas', mood: 'felt & intimate', moodEs: 'íntimo y cercano', icon: '◒', color: '#e9c78c', waveform: 'sine' },
@@ -60,13 +63,13 @@ const copy = {
     eyebrow: 'Un lugar para', freePlay: 'MODO LIBRE', heroTitle: 'Haz algo', heroEmphasis: 'pequeño.', heroCopy: 'Conecta tu MiniLab, elige un sonido y empieza a tocar.', tempo: 'TEMPO', bpm: 'BPM', slower: 'Más lento', faster: 'Más rápido', chooseSound: 'ELIGE UN SONIDO', soundSettings: 'ajustes', inspire: 'Inspírame', songs: 'CANCIONES', songLibrary: 'Biblioteca de canciones', loadSong: 'Cargar canción', dropSong: 'Arrastra un MIDI aquí o selecciónalo', midiOnly: 'Solo archivos .mid y .midi', noSongs: 'Todavía no hay canciones cargadas.', openSong: 'Jugar', deleteSong: 'Eliminar', loadingSong: 'Analizando MIDI…', songLoaded: 'Canción lista para jugar', songError: 'No se pudo leer ese MIDI.', songEmpty: 'El MIDI no contiene pistas con notas.', targetTrack: 'Pista objetivo', gameReady: 'Elige una canción para comenzar',
     minilab: 'MINILAB / VISUALIZADOR', keys: '25 TECLAS', tip: 'Pulsa una tecla del MiniLab o usa A–P para tocar', computer: 'el teclado A–P también funciona', pads: 'PADS', padBank: 'BANCO', controller: 'CONTROLADOR', noController: 'Sin controlador todavía', unsupported: 'Web MIDI no disponible', waiting: 'Esperando un controlador MIDI', looking: 'Buscando un controlador', tryChrome: 'Prueba Chrome o Edge para MIDI', plugIn: 'Conecta tu MiniLab para empezar', connectMidi: 'Conectar MIDI', rescan: 'Volver a buscar MIDI', selectController: 'Seleccionar controlador',
     metronome: 'Metrónomo', active: 'activo', start: 'Iniciar', pause: 'Pausar', loop: 'LOOP', loopSub: 'una pulsación para empezar', record: 'GRABAR SESIÓN', stopRecord: 'DETENER GRABACIÓN', recording: 'Grabando sesión', recordingReady: 'Grabación lista', download: 'Descargar', loopsNext: 'Loops y capas son el siguiente paso', openMonitor: 'abrir monitor MIDI',
-    audioReady: 'audio listo', audioWaiting: 'esperando la primera nota', footer: 'local-first · sin cuenta · hecho para perderse en el sonido', devTool: 'HERRAMIENTA DE DESARROLLO', midiMonitor: 'Monitor MIDI', liveMessages: 'mensajes en vivo de', events: 'eventos', emptyEvents: 'Pulsa una tecla o mueve un control para verlo aquí.', listener: 'escucha activa', clear: 'limpiar', settings: 'AJUSTES', keepSimple: 'Mantengámoslo simple.', scale: 'Asistente de escala', scaleSub: 'Stay in key llegará con el motor de loops.', output: 'Salida de audio', outputSub: 'Predeterminada del navegador · baja latencia recomendada.', packs: 'Packs de instrumentos', packsSub: 'Los sonidos sampleados llegarán después del loop principal.', openMidi: 'Abrir monitor MIDI', language: 'Cambiar idioma',
+    audioReady: 'audio listo', audioWaiting: 'esperando la primera nota', footer: 'local-first · sin cuenta · hecho para perderse en el sonido', devTool: 'HERRAMIENTA DE DESARROLLO', midiMonitor: 'Monitor MIDI', liveMessages: 'mensajes en vivo de', events: 'eventos', emptyEvents: 'Pulsa una tecla o mueve un control para verlo aquí.', listener: 'escucha activa', clear: 'limpiar', settings: 'AJUSTES', keepSimple: 'Mantengámoslo simple.', scale: 'Asistente de escala', scaleSub: 'Stay in key llegará con el motor de loops.', output: 'Salida de audio', outputSub: 'Predeterminada del navegador · baja latencia recomendada.', packs: 'Packs de instrumentos', packsSub: 'Los sonidos sampleados llegarán después del loop principal.', openMidi: 'Abrir monitor MIDI', language: 'Cambiar idioma', theme: 'Cambiar tema', lightMode: 'Modo claro', darkMode: 'Modo oscuro',
   },
   en: {
     eyebrow: 'A tiny place to', freePlay: 'FREE PLAY', heroTitle: 'Make a little', heroEmphasis: 'something.', heroCopy: 'Connect your MiniLab, choose a sound, and start playing.', tempo: 'TEMPO', bpm: 'BPM', slower: 'Slower', faster: 'Faster', chooseSound: 'CHOOSE A SOUND', soundSettings: 'settings', inspire: 'Inspire me', songs: 'SONGS', songLibrary: 'Song library', loadSong: 'Load song', dropSong: 'Drop a MIDI here or choose one', midiOnly: 'Only .mid and .midi files', noSongs: 'No songs loaded yet.', openSong: 'Play', deleteSong: 'Delete', loadingSong: 'Reading MIDI…', songLoaded: 'Song ready to play', songError: 'That MIDI could not be read.', songEmpty: 'The MIDI has no tracks with notes.', targetTrack: 'Target track', gameReady: 'Choose a song to begin',
     minilab: 'MINILAB / VISUALIZER', keys: '25 KEYS', tip: 'Press any key on your MiniLab, or use A–P to play', computer: 'computer keys A–P work too', pads: 'PADS', padBank: 'BANK', controller: 'CONTROLLER', noController: 'No controller yet', unsupported: 'Web MIDI unavailable', waiting: 'Waiting for a MIDI controller', looking: 'Looking for a controller', tryChrome: 'Try Chrome or Edge for MIDI access', plugIn: 'Plug in your MiniLab to start playing', connectMidi: 'Connect MIDI', rescan: 'Rescan MIDI', selectController: 'Select controller',
     metronome: 'Metronome', active: 'active', start: 'Start', pause: 'Pause', loop: 'LOOP', loopSub: 'one press to begin', record: 'RECORD SESSION', stopRecord: 'STOP RECORDING', recording: 'Recording session', recordingReady: 'Recording ready', download: 'Download', loopsNext: 'Loops & layers are next', openMonitor: 'open MIDI monitor',
-    audioReady: 'audio ready', audioWaiting: 'waiting for first note', footer: 'local-first · no account · made for getting lost in sound', devTool: 'DEVELOPMENT TOOL', midiMonitor: 'MIDI monitor', liveMessages: 'live messages from', events: 'events', emptyEvents: 'Play a key or move a control to see it here.', listener: 'listener active', clear: 'clear', settings: 'SETTINGS', keepSimple: 'Keep it simple.', scale: 'Scale assist', scaleSub: 'Stay in key will arrive with the loop engine.', output: 'Audio output', outputSub: 'Browser default · low latency preferred.', packs: 'Instrument packs', packsSub: 'Sample-based sounds are planned after the core play loop.', openMidi: 'Open MIDI monitor', language: 'Change language',
+    audioReady: 'audio ready', audioWaiting: 'waiting for first note', footer: 'local-first · no account · made for getting lost in sound', devTool: 'DEVELOPMENT TOOL', midiMonitor: 'MIDI monitor', liveMessages: 'live messages from', events: 'events', emptyEvents: 'Play a key or move a control to see it here.', listener: 'listener active', clear: 'clear', settings: 'SETTINGS', keepSimple: 'Keep it simple.', scale: 'Scale assist', scaleSub: 'Stay in key will arrive with the loop engine.', output: 'Audio output', outputSub: 'Browser default · low latency preferred.', packs: 'Instrument packs', packsSub: 'Sample-based sounds are planned after the core play loop.', openMidi: 'Open MIDI monitor', language: 'Change language', theme: 'Change theme', lightMode: 'Light mode', darkMode: 'Dark mode',
   },
 } as const
 
@@ -96,6 +99,7 @@ function App() {
   const midi = useMemo(() => new MidiEngine(), [])
   const audio = useMemo(() => new AudioEngine(), [])
   const [language, setLanguage] = useState<Language>(() => localStorage.getItem('minilab-language') === 'en' ? 'en' : 'es')
+  const [theme, setTheme] = useState<Theme>(() => localStorage.getItem('minilab-theme') === 'light' ? 'light' : 'dark')
   const ui = copy[language]
   const [selectedInstrument, setSelectedInstrument] = useState(instruments[2])
   const [midiState, setMidiState] = useState<'checking' | 'connected' | 'waiting' | 'unsupported'>('checking')
@@ -158,6 +162,12 @@ function App() {
     localStorage.setItem('minilab-language', language)
     setTip(copy[language].tip)
   }, [language])
+
+  useEffect(() => {
+    localStorage.setItem('minilab-theme', theme)
+    document.documentElement.dataset.theme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f4f1ec' : '#0d0f13')
+  }, [theme])
 
   const resetGameScore = () => {
     scoreStatsRef.current = { score: 0, combo: 0, hits: 0, attempts: 0 }
@@ -412,11 +422,11 @@ function App() {
   const activeTargetTrack = activeSong?.tracks.find((track) => track.id === targetTrackId) ?? null
   const visibleKeyboardNotes = activeSong ? Array.from({ length: 25 }, (_, index) => keyboardStart + index) : keyboardNotes
 
-  return <div className="app-shell">
+  return <div className="app-shell" data-theme={theme}>
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <header className="topbar">
       <div className="brand-lockup"><div className="brand-mark"><Waves size={18} strokeWidth={2.4} /></div><div><span className="eyebrow">{ui.eyebrow}</span><h1>MiniLab Playground</h1></div></div>
-      <div className="top-actions"><div className={`connection-pill ${midiState}`}><span className="status-dot" /><span>{statusLabel}</span></div><button className="song-top-button" onClick={() => setShowSongLibrary(true)}><Music2 size={15} /> {ui.songs}</button><button className="language-toggle" aria-label={ui.language} title={ui.language} onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}><Languages size={15} /> {language === 'es' ? 'EN' : 'ES'}</button><button className="icon-button" aria-label="Settings" onClick={() => setShowSettings((value) => !value)}><Settings2 size={17} /></button><button className="icon-button" aria-label="Menu" onClick={() => setShowMonitor(true)}><Menu size={18} /></button></div>
+      <div className="top-actions"><div className={`connection-pill ${midiState}`}><span className="status-dot" /><span>{statusLabel}</span></div><button className="song-top-button" onClick={() => setShowSongLibrary(true)}><Music2 size={15} /> {ui.songs}</button><button className="language-toggle" aria-label={ui.language} title={ui.language} onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}><Languages size={15} /> {language === 'es' ? 'EN' : 'ES'}</button><button className="icon-button theme-toggle" aria-label={ui.theme} title={theme === 'dark' ? ui.lightMode : ui.darkMode} aria-pressed={theme === 'light'} onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}</button><button className="icon-button" aria-label="Settings" onClick={() => setShowSettings((value) => !value)}><Settings2 size={17} /></button><button className="icon-button" aria-label="Menu" onClick={() => setShowMonitor(true)}><Menu size={18} /></button></div>
     </header>
 
     <main className={`workspace ${activeSong ? 'game-active' : ''}`}>

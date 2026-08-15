@@ -27,7 +27,7 @@ onDevices(inputs)
 
 El engine recuerda el último `input.id`, prefiere un dispositivo cuyo nombre contenga `MiniLab` o `Arturia` y observa cambios de conexión. Si hay más de un dispositivo, la pantalla permite seleccionarlo.
 
-El mapping inicial está aislado en `MiniLabMapping`. El MVP no presupone que todos los MiniLab estén configurados igual: los números de CC son defaults de diagnóstico y deben confirmarse con el monitor al probar el hardware real.
+El mapping inicial está aislado en `MiniLabMapping`. Para el MiniLab 3 se usan los CC documentados por Arturia: encoders 1–8 en `74, 71, 76, 77, 93, 18, 19, 16`, faders en `82, 83, 85, 17` y pads 1–8 en `102–109`. El monitor sigue siendo la fuente de verdad al probar el puerto real del dispositivo, ya que Arturia expone también puertos separados para MCU/HUI y Analog Lab.
 
 ### Web Audio API
 
@@ -40,7 +40,11 @@ Esto permite evolucionar después hacia:
 - instrumentos sample-based;
 - grabación del master mediante `MediaStreamAudioDestinationNode`.
 
-El MVP usa cinco formas de onda agradables y una arquitectura deliberadamente pequeña. No intenta reemplazar un sampler ni un sintetizador completo.
+La implementación actual ya conecta el master a un `MediaStreamAudioDestinationNode`. `MediaRecorder` captura ese stream y ofrece una reproducción local y una descarga WebM. El formato se elige con la capacidad real del navegador; no se presenta como WAV si el navegador está grabando WebM.
+
+El tempo tiene ahora un uso audible independiente del loop engine: `AudioEngine.triggerClick()` genera el pulso del metrónomo y la UI lo inicia o pausa con un intervalo basado en BPM. Ese intervalo es una herramienta de previsualización, no el reloj definitivo de loops; el scheduler musical deberá usar look-ahead de Web Audio cuando llegue el Milestone 4.
+
+La superficie actual ofrece diez formas de onda/timbres agradables y una arquitectura deliberadamente pequeña. No intenta reemplazar un sampler ni un sintetizador completo.
 
 ### Modelo de datos
 
@@ -121,7 +125,7 @@ Confirmar mapping real del MiniLab 3 con mensajes del monitor, conectar knobs a 
 
 ### Milestone 4 — loop musical
 
-Construir Transport, captura MIDI, cuantización conservadora, reproducción sincronizada y BPM/tap tempo.
+Construir Transport, captura MIDI, cuantización conservadora, reproducción sincronizada y BPM/tap tempo. El metrónomo audible actual es una previsualización y no debe convertirse en el reloj de las capas.
 
 ### Milestone 5 — capas
 
@@ -129,4 +133,4 @@ Capas como tarjetas, mute, delete, undo e instrumentos independientes, sin mixer
 
 ### Milestone 6+ — grabación, persistencia e inspiración
 
-Render de sesión, export, sesiones locales, Inspire Me, escalas y presets. Play Mode y análisis de audio quedan fuera hasta que Free Play sea estable.
+La grabación WebM del master ya existe; este milestone debe sumar WAV fiable, sesiones locales, Inspire Me, escalas y presets. Play Mode y análisis de audio quedan fuera hasta que Free Play sea estable.

@@ -1,4 +1,4 @@
-import { getControlName, isLikelyPad } from './minilabMapping'
+import { getControlName, getPadNumberFromCc } from './minilabMapping'
 import type { MidiEventType, MidiLogEvent } from '../types'
 
 export interface MidiInputLike {
@@ -68,6 +68,7 @@ export class MidiEngine {
     }
     const remembered = localStorage.getItem('minilab-last-device')
     const preferred = inputs.find((input) => input.id === remembered) ??
+      inputs.find((input) => /minilab.*midi|arturia.*midi/i.test(`${input.name} ${input.manufacturer}`)) ??
       inputs.find((input) => /minilab|arturia/i.test(`${input.name} ${input.manufacturer}`)) ?? inputs[0]
     if (preferred !== this.activeInput) this.selectInput(preferred, callbacks)
   }
@@ -83,16 +84,20 @@ export class MidiEngine {
       callbacks.onLog({ id: ++this.logId, type, label, detail, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), channel, ...extra })
     }
     if (status === 0x90 && value > 0) {
-      if (isLikelyPad(first)) callbacks.onPad(first - 35, true)
-      else callbacks.onNoteOn(first, value, channel)
+      callbacks.onNoteOn(first, value, channel)
       emit('NOTE ON', midiNoteName(first), `Velocity ${value}`, { note: first, velocity: value })
     } else if (status === 0x80 || (status === 0x90 && value === 0)) {
-      if (isLikelyPad(first)) callbacks.onPad(first - 35, false)
-      else callbacks.onNoteOff(first, channel)
+      callbacks.onNoteOff(first, channel)
       emit('NOTE OFF', midiNoteName(first), `Channel ${channel}`, { note: first })
     } else if (status === 0xb0) {
-      callbacks.onKnob(first, value)
-      emit('CC', getControlName(first), `Value ${value}`, { velocity: value })
+      const pad = getPadNumberFromCc(first)
+      if (pad) {
+        callbacks.onPad(pad, value > 0)
+        emit('CC', `PAD ${pad}`, `Value ${value}`, { velocity: value })
+      } else {
+        callbacks.onKnob(first, value)
+        emit('CC', getControlName(first), `Value ${value}`, { velocity: value })
+      }
     } else if (status === 0xe0) {
       const bend = (value << 7) | first
       emit('PITCH BEND', `${bend}`, `Channel ${channel}`)

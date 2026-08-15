@@ -9,6 +9,7 @@ interface Voice {
 export class AudioEngine {
   private context: AudioContext | null = null
   private master: GainNode | null = null
+  private recordingDestination: MediaStreamAudioDestinationNode | null = null
   private voices = new Map<number, Voice>()
   private currentInstrument: InstrumentDefinition | null = null
   private tone = 0.58
@@ -20,6 +21,8 @@ export class AudioEngine {
       this.master = this.context.createGain()
       this.master.gain.value = 0.25
       this.master.connect(this.context.destination)
+      this.recordingDestination = this.context.createMediaStreamDestination()
+      this.master.connect(this.recordingDestination)
     }
     if (this.context.state === 'suspended') await this.context.resume()
   }
@@ -37,6 +40,25 @@ export class AudioEngine {
 
   setAttack(value: number) {
     this.attack = value
+  }
+
+  getRecordingStream() {
+    return this.recordingDestination?.stream ?? null
+  }
+
+  triggerClick(accent = false) {
+    if (!this.context || !this.master) return
+    const oscillator = this.context.createOscillator()
+    const gain = this.context.createGain()
+    const now = this.context.currentTime
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(accent ? 1240 : 880, now)
+    gain.gain.setValueAtTime(accent ? 0.08 : 0.045, now)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055)
+    oscillator.connect(gain)
+    gain.connect(this.master)
+    oscillator.start(now)
+    oscillator.stop(now + 0.06)
   }
 
   noteOn(note: number, velocity = 100) {

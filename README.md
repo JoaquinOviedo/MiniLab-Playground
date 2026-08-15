@@ -15,7 +15,18 @@ Esta primera entrega cubre el Milestone 1 y una base de audio mínima:
 - cinco timbres iniciales y controles Tone, Reverb, Delay y Attack como superficie de UX;
 - persistencia local del BPM.
 
-Los botones de loop, grabación y capas están presentados como el siguiente paso del producto, pero todavía no simulan una función incompleta.
+La siguiente iteración agrega:
+
+- diez timbres iniciales;
+- interfaz Español/English con español como idioma inicial;
+- metrónomo audible con play/pausa y BPM persistente;
+- grabación del master de audio con reproducción y descarga WebM;
+- representación visual de 25 teclas, 8 pads, 8 encoders y 4 faders del MiniLab 3;
+- mapping de pads del MiniLab 3 como CC 102–109 y selección preferente del puerto `MiniLab 3 MIDI`.
+
+El botón de Loop y las capas siguen reservados para el siguiente milestone. La grabación de sesión ya funciona sobre el audio que escucha el usuario, pero todavía no convierte las notas en loops MIDI editables.
+
+El botón `Iniciar` del tempo reproduce un pulso de metrónomo audible a la velocidad indicada; `Pausar` lo detiene. No inicia loops porque el motor de loops aún no está implementado.
 
 ## Desarrollo
 

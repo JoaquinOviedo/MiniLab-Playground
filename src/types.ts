@@ -1,4 +1,4 @@
-export type InstrumentId = 'soft-piano' | 'dream-pad' | 'soft-synth' | 'warm-bass' | 'bells'
+export type InstrumentId = 'soft-piano' | 'electric-piano' | 'dream-pad' | 'warm-pad' | 'soft-synth' | 'retro-synth' | 'pluck' | 'warm-bass' | 'bells' | 'strings'
 
 export type MidiEventType = 'NOTE ON' | 'NOTE OFF' | 'CC' | 'PITCH BEND' | 'AFTERTOUCH'
 
@@ -16,8 +16,11 @@ export interface MidiLogEvent {
 export interface InstrumentDefinition {
   id: InstrumentId
   name: string
+  nameEs: string
   category: string
+  categoryEs: string
   mood: string
+  moodEs: string
   icon: string
   color: string
   waveform: OscillatorType

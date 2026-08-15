@@ -5,17 +5,21 @@ export const miniLab3Mapping: MiniLabMapping = {
     74: 'tone',
     71: 'reverb',
     76: 'delay',
-    19: 'attack',
+    77: 'attack',
+    93: 'tone',
+    18: 'reverb',
+    19: 'delay',
+    16: 'attack',
   },
   pads: {
-    36: 'PAD 1',
-    37: 'PAD 2',
-    38: 'PAD 3',
-    39: 'PAD 4',
-    40: 'PAD 5',
-    41: 'PAD 6',
-    42: 'PAD 7',
-    43: 'PAD 8',
+    102: 'PAD 1',
+    103: 'PAD 2',
+    104: 'PAD 3',
+    105: 'PAD 4',
+    106: 'PAD 5',
+    107: 'PAD 6',
+    108: 'PAD 7',
+    109: 'PAD 8',
   },
 }
 
@@ -23,6 +27,10 @@ export function getControlName(cc: number) {
   return miniLab3Mapping.knobs[cc] ?? `CC ${cc}`
 }
 
-export function isLikelyPad(note: number) {
-  return note >= 36 && note <= 43
+export function getPadNumberFromCc(cc: number) {
+  return miniLab3Mapping.pads[cc] ? cc - 101 : null
+}
+
+export function isMiniLabFader(cc: number) {
+  return [82, 83, 85, 17].includes(cc)
 }

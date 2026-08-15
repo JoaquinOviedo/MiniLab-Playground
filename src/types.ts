@@ -34,6 +34,68 @@ export interface NoteEvent {
   channel: number
 }
 
+export type SongSource = 'midi'
+
+export interface TempoPoint {
+  bpm: number
+  time: number
+}
+
+export interface SongNote {
+  id: string
+  note: number
+  velocity: number
+  startTime: number
+  duration: number
+  channel: number
+}
+
+export interface SongTrack {
+  id: string
+  name: string
+  channel: number
+  instrumentName: string
+  instrumentProgram: number
+  isPercussion: boolean
+  notes: SongNote[]
+}
+
+export interface ImportedSong {
+  id: string
+  name: string
+  fileName: string
+  source: SongSource
+  duration: number
+  tempos: TempoPoint[]
+  timeSignature: [number, number]
+  tracks: SongTrack[]
+  importedAt: number
+}
+
+export type GameView = 'falling' | 'piano-roll'
+export type GameTransportState = 'stopped' | 'playing' | 'paused'
+
+export interface MidiNoteInput {
+  note: number
+  velocity: number
+  channel: number
+  receivedAt: number
+  source: 'midi' | 'virtual'
+}
+
+export interface GameSession {
+  songId: string
+  targetTrackId: string
+  view: GameView
+  speed: number
+  state: GameTransportState
+  position: number
+  score: number
+  combo: number
+  accuracy: number
+  octaveShift: number
+}
+
 export interface MiniLabMapping {
   knobs: Record<number, 'tone' | 'reverb' | 'delay' | 'attack'>
   pads: Record<number, string>

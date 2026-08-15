@@ -22,7 +22,7 @@ export interface MidiAccessLike {
 }
 
 type MidiCallbacks = {
-  onNoteOn: (note: number, velocity: number, channel: number) => void
+  onNoteOn: (note: number, velocity: number, channel: number, receivedAt: number) => void
   onNoteOff: (note: number, channel: number) => void
   onPad: (pad: number, pressed: boolean) => void
   onKnob: (cc: number, value: number) => void
@@ -84,7 +84,7 @@ export class MidiEngine {
       callbacks.onLog({ id: ++this.logId, type, label, detail, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), channel, ...extra })
     }
     if (status === 0x90 && value > 0) {
-      callbacks.onNoteOn(first, value, channel)
+      callbacks.onNoteOn(first, value, channel, performance.now())
       emit('NOTE ON', midiNoteName(first), `Velocity ${value}`, { note: first, velocity: value })
     } else if (status === 0x80 || (status === 0x90 && value === 0)) {
       callbacks.onNoteOff(first, channel)

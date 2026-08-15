@@ -176,6 +176,95 @@ h2 em { font-weight: 400; color: #baa9f5; }
   .transport-button { justify-self: start; }
 }
 
+/* Song mode: a focused surface for importing and playing MIDI arrangements. */
+.song-top-button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #4b426a; border-radius: 9px; background: #28223b; color: #d3c9ff; font: 10px 'DM Mono'; letter-spacing: .06em; }
+.song-top-button:hover { background: #352d4d; border-color: #8172b9; }
+.game-active > .hero-row, .game-active > .instrument-section, .game-active > .midi-line, .game-active > .actions-panel { display: none; }
+.song-game { padding: 22px 24px 18px; overflow: hidden; }
+.song-game-header, .song-game-controls, .song-game-meta, .song-scorebar { display: flex; align-items: center; gap: 12px; }
+.song-game-header { justify-content: space-between; }
+.song-game-title h2 { margin-top: 7px; font-size: clamp(25px, 4vw, 42px); letter-spacing: -.055em; line-height: .98; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-game-title small { display: block; margin-top: 8px; color: #9299a4; font: 10px 'DM Mono'; letter-spacing: .03em; }
+.song-game-controls { margin-top: 20px; padding-top: 14px; border-top: 1px solid #2d323b; flex-wrap: wrap; }
+.song-control { display: grid; gap: 6px; min-width: 200px; color: #9ca2ac; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
+.song-control select { min-width: 200px; max-width: 300px; padding: 9px 10px; border: 1px solid #3a404b; border-radius: 8px; background: #111419; color: #e0dce2; font: 11px 'DM Mono'; }
+.song-view-toggle { display: inline-flex; gap: 4px; margin-left: auto; padding: 4px; border: 1px solid #303640; border-radius: 9px; background: #13161b; }
+.song-view-toggle button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 0; border-radius: 6px; background: transparent; color: #8f96a0; font: 10px 'DM Mono'; }
+.song-view-toggle button.selected { background: #3d3459; color: #eee9ff; }
+.song-transport-actions { display: flex; gap: 6px; }
+.song-round-button { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #3a404a; border-radius: 50%; background: #20242b; color: #d1c8fb; }
+.song-round-button:hover { border-color: #8978c5; background: #352d4d; }
+.song-game-meta { margin: 14px 0 12px; color: #8f96a0; font: 10px 'DM Mono'; }
+.song-game-meta svg { vertical-align: -2px; color: #b2a1fa; }
+.song-game-meta input { width: 120px; accent-color: #a797ed; }
+.song-range { margin-left: auto; color: #9f96c7; }
+.song-board { position: relative; height: 320px; overflow: hidden; border: 1px solid #303640; border-radius: 10px; background: linear-gradient(180deg, #11151b, #151521); }
+.song-board::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 105%, #a394e31f, transparent 46%); }
+.falling-board, .roll-board { position: absolute; inset: 0; }
+.falling-lanes { position: absolute; inset: 0 0 25px; display: grid; grid-template-columns: repeat(25, 1fr); }
+.falling-lanes span { border-right: 1px solid #ffffff0b; }
+.falling-lanes span:nth-child(odd) { background: #ffffff03; }
+.falling-notes, .roll-notes { position: absolute; inset: 0 0 25px; }
+.game-note { position: absolute; border-radius: 4px; box-shadow: 0 0 16px #a999e666, inset 0 -2px #ffffff55; opacity: .94; }
+.falling-note { height: 25px; transform: translateX(2px); }
+.hit-line { position: absolute; left: 0; right: 0; bottom: 37px; height: 3px; background: #c1b2ff; box-shadow: 0 0 18px #b19cffaa; z-index: 3; }
+.hit-line span, .roll-hit-line span { position: absolute; right: 10px; top: -17px; color: #b8adcf; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
+.falling-key-labels { position: absolute; bottom: 0; left: 0; right: 0; height: 25px; display: grid; grid-template-columns: repeat(25, 1fr); align-items: center; color: #69717d; font: 9px 'DM Mono'; text-align: center; }
+.roll-grid { position: absolute; inset: 0; display: grid; grid-template-rows: repeat(8, 1fr); }
+.roll-grid span { border-bottom: 1px solid #ffffff0b; }
+.roll-grid span:nth-child(odd) { background: #ffffff03; }
+.roll-notes { inset: 0; }
+.roll-note { height: 13px; transform: translateY(50%); min-width: 9px; }
+.roll-hit-line { position: absolute; top: 0; bottom: 0; left: 34%; width: 2px; background: #c1b2ff; box-shadow: 0 0 18px #b19cffaa; z-index: 3; }
+.roll-hit-line span { top: 10px; right: auto; left: 7px; writing-mode: vertical-rl; }
+.song-board-hint { position: absolute; inset: 0; display: grid; place-items: center; color: #d9d2f7; background: #0c0e14aa; backdrop-filter: blur(3px); font: 11px 'DM Mono'; text-transform: uppercase; letter-spacing: .1em; z-index: 4; }
+.song-scorebar { justify-content: flex-start; gap: 25px; min-height: 48px; padding-top: 13px; }
+.song-scorebar > span { display: grid; gap: 3px; }
+.song-scorebar strong { color: #f0ecff; font: 18px 'DM Mono'; }
+.song-scorebar small { color: #848b97; font: 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
+.last-judgment { margin-left: auto; color: #aaa1c9; font: 12px 'DM Mono'; text-transform: uppercase; letter-spacing: .08em; }
+.last-judgment.perfect { color: #9de5d3; text-shadow: 0 0 12px #83d9c555; }
+.song-library-modal { width: min(700px, 100%); max-height: min(720px, 90vh); overflow: auto; padding: 24px; border: 1px solid #3a3e47; border-radius: 15px; background: #17191f; box-shadow: 0 25px 80px #000b; }
+.song-drop-zone { width: 100%; display: grid; justify-items: center; gap: 8px; margin-top: 24px; padding: 24px 18px; border: 1px dashed #6d5e9c; border-radius: 11px; background: #28223b80; color: #d8d0fb; }
+.song-drop-zone:hover { background: #352d4d; border-color: #b4a5ff; }
+.song-drop-zone svg { color: #b9a9ff; }
+.song-drop-zone strong { font-size: 12px; }
+.song-drop-zone small { color: #9790ad; font: 10px 'DM Mono'; }
+.song-library-list { margin-top: 16px; border-top: 1px solid #2c3038; }
+.song-library-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-bottom: 1px solid #2c3038; }
+.song-library-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.song-library-info svg { flex: 0 0 auto; color: #b3a2f3; }
+.song-library-info strong, .song-library-info small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-library-info strong { color: #e4e0e6; font-size: 12px; }
+.song-library-info small { margin-top: 4px; color: #858c96; font: 10px 'DM Mono'; }
+.song-library-actions { display: flex; align-items: center; gap: 6px; }
+.song-library-actions .outline-button { margin-top: 0; padding: 8px 10px; }
+.icon-button.danger:hover { color: #f0a28b; border-color: #9b5d51; }
+.song-library-empty { display: grid; justify-items: center; gap: 10px; padding: 34px 0 20px; color: #818892; font-size: 12px; }
+.song-library-empty svg { color: #a797e9; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; clip-path: inset(50%); }
+
+@media (max-width: 800px) {
+  .song-game { padding-left: 16px; padding-right: 16px; }
+  .song-view-toggle { margin-left: 0; }
+  .song-game-meta { flex-wrap: wrap; }
+  .song-range { width: 100%; margin-left: 0; }
+}
+
+@media (max-width: 500px) {
+  .song-top-button { padding: 0 7px; }
+  .song-top-button { font-size: 0; }
+  .song-game-title h2 { font-size: 28px; }
+  .song-game-controls { align-items: stretch; }
+  .song-control, .song-control select { width: 100%; max-width: none; }
+  .song-view-toggle { width: 100%; }
+  .song-view-toggle button { flex: 1; justify-content: center; }
+  .song-transport-actions { margin-left: auto; }
+  .song-board { height: 250px; }
+  .song-library-row { align-items: flex-start; flex-direction: column; }
+  .song-library-actions { width: 100%; justify-content: flex-end; }
+}
+
 /* Focus mode: keep the main surface about choosing a sound and playing the keys. */
 .instrument-grid { display: flex; overflow-x: auto; gap: 9px; padding-bottom: 4px; scrollbar-width: thin; scrollbar-color: #444957 transparent; }
 .instrument-card { flex: 0 0 134px; min-height: 84px; }

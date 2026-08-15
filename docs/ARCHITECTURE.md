@@ -17,7 +17,7 @@ Las versiones están fijadas en una línea compatible con Node 18.18+, que es el
 `MidiEngine` es el único lugar que conoce los bytes de MIDI. Expone eventos semánticos hacia la UI y el futuro loop engine:
 
 ```ts
-onNoteOn(note, velocity, channel)
+onNoteOn(note, velocity, channel, receivedAt)
 onNoteOff(note, channel)
 onPad(pad, pressed)
 onKnob(cc, value)
@@ -41,6 +41,14 @@ Esto permite evolucionar después hacia:
 - grabación del master mediante `MediaStreamAudioDestinationNode`.
 
 La implementación actual ya conecta el master a un `MediaStreamAudioDestinationNode`. `MediaRecorder` captura ese stream y ofrece una reproducción local y una descarga WebM. El formato se elige con la capacidad real del navegador; no se presenta como WAV si el navegador está grabando WebM.
+
+### Modo canción MIDI
+
+El modo canción es local-first y acepta archivos `.mid`/`.midi` mediante selector o arrastrar y soltar. `songParser.ts` usa `@tonejs/midi` para convertir el archivo en un `ImportedSong` plano con tempos, pistas y notas; `songStorage.ts` guarda ese modelo en IndexedDB para que la biblioteca sobreviva al reinicio sin subir el archivo.
+
+`SongTransport` comparte el `AudioContext` del `AudioEngine`. El reloj lógico se ancla a `AudioContext.currentTime`, mientras un intervalo de look-ahead programa el acompañamiento con antelación. React recibe snapshots visuales, pero no funciona como reloj musical. La pista objetivo se silencia y las demás se asignan a los diez instrumentos existentes.
+
+`gameScoring.ts` conserva la nota original y crea una vista jugable de 25 teclas transportando por octavas las notas que quedan fuera del rango. La puntuación combina sincronización y velocidad MIDI; el teclado virtual conserva la evaluación de nota y tiempo sin penalizar una velocidad que no puede medir.
 
 El tempo tiene ahora un uso audible independiente del loop engine: `AudioEngine.triggerClick()` genera el pulso del metrónomo y la UI lo inicia o pausa con un intervalo basado en BPM. Ese intervalo es una herramienta de previsualización, no el reloj definitivo de loops; el scheduler musical deberá usar look-ahead de Web Audio cuando llegue el Milestone 4.
 
